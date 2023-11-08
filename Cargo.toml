@@ -21,17 +21,12 @@ usage = "1.4.0"
 
 
 shalrath = "0.2.5"
-shambler = {path = "./shambler"}
-bevy_xpbd_3d = {version = "0.3.1", optional = true}
+shambler = { git = "https://github.com/odecay/shambler.git" }
+bevy_xpbd_3d = { version = "0.3.1", optional = true }
 
 [features]
-xpbd=["bevy_xpbd_3d"]
+xpbd = ["bevy_xpbd_3d"]
 
-[workspace]
-resolver="1"
-
-members = [
-    ".",
-    "shambler",
-    "example",
-]
+[[example]]
+name = "first_person"
+required-features = ["xpbd"]
