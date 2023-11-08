@@ -5,11 +5,11 @@ Supported Bevy Versions: 0.12
 Supported Physics Engines: XPBD (Rapier coming soon)
 
 # Features
-- [x] Geometry
-- [x] Only build geometry that has textures
-- [x] A post build map hook for spawning your entities
-- [x] XPBD physics
-- [ ] Rapier physics
+- [x] Geometry ✔️
+- [x] Only build geometry that has textures ✔️
+- [x] A post build map hook for spawning your entities ✔️
+- [x] XPBD physics ✔️
+- [ ] Rapier physics ❌ coming soon ❌
 
 ## Example project & TrenchBroom
 
