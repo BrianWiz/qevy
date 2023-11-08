@@ -2,6 +2,11 @@
 name = "qevy"
 version = "0.1.0"
 edition = "2021"
+repository = "https://github.com/BrianWiz/qevy"
+description = "Quake .map files for the Bevy game engine."
+license = "MIT OR Apache-2.0"
+keywords = ["quake", "bevy", "game", "engine", "map", "bsp"]
+authors = ["Brian Howard <brian.howard@hey.com>"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
