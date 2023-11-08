@@ -1,0 +1,3 @@
+[submodule "shambler"]
+	path = shambler
+	url = https://github.com/BrianWiz/shambler

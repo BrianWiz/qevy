@@ -1,0 +1,38 @@
+//=======================================================
+// solids
+//=======================================================
+@SolidClass = worldspawn : "World Entity" []
+@SolidClass = geometry : "Standard Geometry Brush" []
+@SolidClass = sensor : "Sensor Volume" []
+
+//=======================================================
+// gameplay
+//=======================================================
+@PointClass size(-8 -8 -8, 8 8 8) = spawn_point : "Spawn Point" []
+
+@BaseClass color(40 255 40) = Gameplay[
+	angles(string) : "Angles (x y z)" : "0 0 0"
+]
+
+@PointClass base(Gameplay) model({
+	"path" : "models/monkey.gltf",
+	"scale" : "32",
+	"texture" : "uv_test.png"
+}) = monkey : "Monkey" []
+
+@PointClass size(-4 -4 -4, 4 4 4) color(255 255 40) base(Gameplay) = light : "Light Source" [
+	color(color) : "Light color"  : "1 1 1"
+	intensity(float) : "Intensity"  : 800
+	range(float) : "Range" : 20
+	shadows_enabled(integer) : "Shadows Enabled" : 0
+]
+
+@PointClass base(Gameplay) model({
+	"path" : "models/editor_directional_light_arrow.gltf",
+	"scale" : "32",
+	"texture" : "uv_test.png"
+}) = directional_light : "Directional Light Source" [
+	color(color) : "Light color"  : "1 1 1"
+	illuminance(integer) : "Intensity"  : 800
+	shadows_enabled(integer) : "Shadows Enabled" : 1
+]

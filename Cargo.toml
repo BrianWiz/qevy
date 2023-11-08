@@ -1,0 +1,32 @@
+[package]
+name = "qevy"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.75"
+async-lock = "3.0.0"
+bevy = "0.12"
+regex = "1.10.2"
+ron = "0.8.1"
+thiserror = "1.0.50"
+usage = "1.4.0"
+
+
+shalrath = "0.2.5"
+shambler = {path = "./shambler"}
+bevy_xpbd_3d = {version = "0.3.1", optional = true}
+
+[features]
+xpbd=["bevy_xpbd_3d"]
+
+[workspace]
+resolver="1"
+
+members = [
+    ".",
+    "shambler",
+    "example",
+]
