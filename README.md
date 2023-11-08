@@ -8,6 +8,8 @@ Supported Physics Engines: XPBD (Rapier coming soon)
 - [x] Geometry
 - [x] Only build geometry that has textures
 - [x] A post build map hook for spawning your entities
+- [x] XPBD physics
+- [ ] Rapier physics
 
 ## Example project & TrenchBroom
 
