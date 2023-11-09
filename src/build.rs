@@ -13,6 +13,9 @@ use crate::{MapAsset, PostMapBuildHook};
 #[cfg(feature = "xpbd")]
 use bevy_xpbd_3d::prelude::*;
 
+#[cfg(feature = "rapier")]
+use bevy_rapier3d::prelude::*;
+
 pub fn build_map(
     map_entity: Entity,
     map_asset: &mut MapAsset,
@@ -105,6 +108,14 @@ pub fn build_map(
             let convex_hull = Collider::convex_hull(brush_vertices);
             if convex_hull.is_some() {
                 commands.spawn((RigidBody::Static, convex_hull.unwrap()));
+            }
+        }
+
+        #[cfg(feature = "rapier")]
+        {
+            let convex_hull = Collider::convex_hull(&brush_vertices);
+            if convex_hull.is_some() {
+                commands.spawn((RigidBody::Fixed, convex_hull.unwrap()));
             }
         }
     }

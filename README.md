@@ -9,7 +9,7 @@ Supported Physics Engines: XPBD (Rapier coming soon)
 - [x] Only build geometry that has textures ✔️
 - [x] A post build map hook for spawning your entities ✔️
 - [x] XPBD physics ✔️
-- [ ] Rapier physics ❌ coming soon ❌
+- [x] Rapier physics ✔️
 - [ ] Phong normals ❌ coming soon ❌
 - [ ] Clips & Triggers ❌ coming soon ❌
 

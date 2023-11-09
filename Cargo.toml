@@ -19,19 +19,11 @@ ron = "0.8.1"
 thiserror = "1.0.50"
 usage = "1.4.0"
 
-
 shalrath = "0.2.5"
 shambler = {path = "./shambler"}
-bevy_xpbd_3d = {version = "0.3.1", optional = true}
+bevy_xpbd_3d = { version = "0.3.1", optional = true }
+bevy_rapier3d = { version = "0.23.0", optional = true }
 
 [features]
 xpbd=["bevy_xpbd_3d"]
-
-[workspace]
-resolver="1"
-
-members = [
-    ".",
-    "shambler",
-    "example",
-]
+rapier=["bevy_rapier3d"]
