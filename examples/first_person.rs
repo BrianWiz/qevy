@@ -1,6 +1,6 @@
-use bevy::input::mouse::MouseMotion;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
+use bevy::{input::mouse::MouseMotion, window::CursorGrabMode};
 use bevy_xpbd_3d::prelude::*;
 
 use qevy::{components::MapEntityProperties, PostMapBuildHook};
@@ -26,7 +26,7 @@ fn main() {
                                        //PhysicsDebugPlugin::default(),
         ))
         .add_systems(Startup, (setup, spawn_map, spawn_character))
-        .add_systems(Update, movement)
+        .add_systems(Update, (movement, grab_mouse))
         .run();
 }
 
@@ -195,5 +195,23 @@ fn movement(
                 (1.0 / 60.0 * 1000.0) * time.delta_seconds(),
             );
         }
+    }
+}
+
+fn grab_mouse(
+    mut windows: Query<&mut Window>,
+    mouse: Res<Input<MouseButton>>,
+    key: Res<Input<KeyCode>>,
+) {
+    let mut window = windows.single_mut();
+
+    if mouse.just_pressed(MouseButton::Left) {
+        window.cursor.visible = false;
+        window.cursor.grab_mode = CursorGrabMode::Locked;
+    }
+
+    if key.just_pressed(KeyCode::Escape) {
+        window.cursor.visible = true;
+        window.cursor.grab_mode = CursorGrabMode::None;
     }
 }
