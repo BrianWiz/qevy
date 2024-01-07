@@ -252,7 +252,7 @@ pub fn build_map(
                                     bevy_rapier3d::prelude::Sensor,
                                 ));
                             } else {
-                                collider.insert((bevy_rapier3d::prelude::RigidBody::Static,));
+                                collider.insert((bevy_rapier3d::prelude::RigidBody::Fixed,));
                             }
                         }
                     }
