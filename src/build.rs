@@ -1,14 +1,13 @@
 use bevy::prelude::*;
 use bevy::render::mesh::Indices;
 use bevy::render::render_resource::PrimitiveTopology;
+use shambler::entity;
 use std::collections::BTreeMap;
 
-use crate::components::MapEntityProperties;
-use crate::conversions::{
-    to_bevy_indecies, to_bevy_position, to_bevy_rotation, to_bevy_vec3s, to_bevy_vertices,
-    uvs_to_bevy_vec2s,
-};
-use crate::{MapAsset, PostMapBuildHook};
+use crate::components::*;
+use crate::conversions::*;
+
+use crate::{MapAsset, PostBuildMapEvent};
 
 #[cfg(feature = "xpbd")]
 use bevy_xpbd_3d::prelude::*;
@@ -21,7 +20,7 @@ pub fn build_map(
     map_asset: &mut MapAsset,
     meshes: &mut Assets<Mesh>,
     commands: &mut Commands,
-    post_build_hook: &mut ResMut<PostMapBuildHook>,
+    ev_post_build_map: &mut EventWriter<PostBuildMapEvent>,
 ) {
     let geomap = map_asset.geomap.as_ref().unwrap();
 
@@ -56,134 +55,226 @@ pub fn build_map(
         ),
     );
 
-    // spawn faces
-    for face_id in geomap.faces.iter() {
-        let texture_id = geomap.face_textures.get(face_id).unwrap();
-        let texture_name = geomap.textures.get(texture_id).unwrap();
-        // we only care about faces with textures
-        if !map_asset.material_handles.contains_key(texture_name) {
-            continue;
-        }
-
-        let indices = to_bevy_indecies(&face_triangle_indices.get(&face_id).unwrap());
-        let vertices = to_bevy_vertices(&face_vertices.get(&face_id).unwrap());
-        let normals = to_bevy_vec3s(&face_normals.get(&face_id).unwrap());
-        let uvs = uvs_to_bevy_vec2s(&face_uvs.get(&face_id).unwrap());
-
-        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
-        mesh.set_indices(Some(Indices::U32(indices)));
-
-        if uvs.len() > 0 {
-            mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
-            if let Err(e) = mesh.generate_tangents() {
-                println!("error generating tangents: {:?}", e);
+    // spawn entities (@PointClass)
+    geomap
+        .entity_properties
+        .iter()
+        .for_each(|(entity_id, props)| {
+            // if it's an entity brush we process it later
+            if geomap.entity_brushes.get(entity_id).is_some() {
+                return;
             }
-        }
 
-        commands.entity(map_entity).with_children(|children| {
-            children.spawn(PbrBundle {
-                mesh: meshes.add(mesh),
-                material: map_asset
-                    .material_handles
-                    .get(texture_name)
-                    .unwrap()
-                    .clone(),
-                ..default()
+            // map properties into btree
+            // just easier to access props
+            let mut props = props
+                .iter()
+                .map(|p| (p.key.as_str(), p.value.as_str()))
+                .collect::<BTreeMap<_, _>>();
+
+            let classname = props.get(&"classname").unwrap_or(&"").to_string();
+            let translation = props.get(&"origin").unwrap_or(&"0 0 0").to_string();
+            let rotation = props.get(&"angles").unwrap_or(&"0 0 0").to_string();
+
+            let translation = translation.split(" ").collect::<Vec<&str>>();
+            let translation = if translation.len() == 3 {
+                to_bevy_position(&Vec3::new(
+                    translation[0].parse::<f32>().unwrap(),
+                    translation[1].parse::<f32>().unwrap(),
+                    translation[2].parse::<f32>().unwrap(),
+                ))
+            } else {
+                Vec3::ZERO
+            };
+
+            let rotation = rotation.split(" ").collect::<Vec<&str>>();
+            let rotation = if rotation.len() == 3 {
+                to_bevy_rotation(&Vec3::new(
+                    rotation[0].parse::<f32>().unwrap(),
+                    rotation[1].parse::<f32>().unwrap(),
+                    rotation[2].parse::<f32>().unwrap(),
+                ))
+            } else {
+                Quat::IDENTITY
+            };
+
+            commands.entity(map_entity).with_children(|children| {
+                let mut entity = children.spawn((MapEntityProperties {
+                    classname: classname.to_string(),
+                    transform: Transform::from_translation(translation)
+                        * Transform::from_rotation(rotation),
+                    properties: props
+                        .iter_mut()
+                        .map(|(k, v)| (k.to_string(), v.to_string()))
+                        .collect(),
+                },));
+
+                if let Some(target_name) = props.get("targetname") {
+                    entity.insert(TriggerTarget {
+                        target_name: target_name.to_string(),
+                    });
+                }
             });
         });
-    }
 
-    // spawn colliders
-    for brush_id in geomap.brushes.iter() {
-        let brush_faces = geomap.brush_faces.get(brush_id).unwrap();
-        let mut brush_vertices: Vec<Vec3> = Vec::new();
-        for face_id in brush_faces.iter() {
-            let vertices = to_bevy_vertices(&face_vertices.get(&face_id).unwrap());
-            brush_vertices.extend(vertices);
-        }
-        #[cfg(feature = "xpbd")]
-        {
-            let convex_hull = Collider::convex_hull(brush_vertices);
-            if convex_hull.is_some() {
-                commands.spawn((RigidBody::Static, convex_hull.unwrap()));
-            }
+    // spawn brush entities (@SolidClass)
+    for (entity_id, brushes) in geomap.entity_brushes.iter() {
+        let entity_properties = geomap.entity_properties.get(&entity_id);
+
+        if let None = entity_properties {
+            panic!("brush entity {} has no properties!", entity_id);
         }
 
-        #[cfg(feature = "rapier")]
-        {
-            let convex_hull = Collider::convex_hull(&brush_vertices);
-            if convex_hull.is_some() {
-                commands.spawn((RigidBody::Fixed, convex_hull.unwrap()));
-            }
-        }
-    }
-
-    // spawn entities
-    geomap.entity_properties.iter().for_each(|(_, props)| {
         // map properties into btree
         // just easier to access props
-        let mut props = props
+        let mut props = entity_properties
+            .unwrap()
             .iter()
             .map(|p| (p.key.as_str(), p.value.as_str()))
             .collect::<BTreeMap<_, _>>();
-
-        commands.spawn((MapEntityProperties { ..default() },));
-
         let classname = props.get(&"classname").unwrap_or(&"").to_string();
-        let translation = props.get(&"origin").unwrap_or(&"0 0 0").to_string();
-        let rotation = props.get(&"angles").unwrap_or(&"0 0 0").to_string();
-
-        let translation = translation.split(" ").collect::<Vec<&str>>();
-        let translation = if translation.len() == 3 {
-            to_bevy_position(&Vec3::new(
-                translation[0].parse::<f32>().unwrap(),
-                translation[1].parse::<f32>().unwrap(),
-                translation[2].parse::<f32>().unwrap(),
-            ))
-        } else {
-            Vec3::ZERO
-        };
-
-        let rotation = rotation.split(" ").collect::<Vec<&str>>();
-        let rotation = if rotation.len() == 3 {
-            to_bevy_rotation(&Vec3::new(
-                rotation[0].parse::<f32>().unwrap(),
-                rotation[1].parse::<f32>().unwrap(),
-                rotation[2].parse::<f32>().unwrap(),
-            ))
-        } else {
-            Quat::IDENTITY
-        };
-
-        props.remove_entry(&"classname");
-        props.remove_entry(&"origin");
-        props.remove_entry(&"angles");
-
-        commands.entity(map_entity).with_children(|children| {
-            children.spawn((MapEntityProperties {
+        let brush_entity = (
+            BrushEntity {},
+            MapEntityProperties {
                 classname: classname.to_string(),
-                transform: Transform::from_translation(translation)
-                    * Transform::from_rotation(rotation),
                 properties: props
                     .iter_mut()
                     .map(|(k, v)| (k.to_string(), v.to_string()))
                     .collect(),
-            },));
+                ..default()
+            },
+            SpatialBundle::default(),
+        );
+
+        commands.entity(map_entity).with_children(|children| {
+            let mut entity = children.spawn(brush_entity);
+            entity.with_children(|gchildren| {
+                for brush_id in brushes.iter() {
+                    let brush_faces = geomap.brush_faces.get(brush_id).unwrap();
+                    let mut brush_vertices: Vec<Vec3> = Vec::new();
+
+                    for face_id in brush_faces.iter() {
+                        let texture_id = geomap.face_textures.get(face_id).unwrap();
+                        let texture_name = geomap.textures.get(texture_id).unwrap();
+
+                        let indices =
+                            to_bevy_indecies(&face_triangle_indices.get(&face_id).unwrap());
+                        let vertices = to_bevy_vertices(&face_vertices.get(&face_id).unwrap());
+                        let normals = to_bevy_vec3s(&face_normals.get(&face_id).unwrap());
+                        let uvs = uvs_to_bevy_vec2s(&face_uvs.get(&face_id).unwrap());
+                        brush_vertices.extend(vertices.clone());
+
+                        // we don't render anything for these two textures
+                        if texture_name == "trigger"
+                            || texture_name == "clip"
+                            || texture_name == "common/trigger"
+                            || texture_name == "common/clip"
+                        {
+                            continue;
+                        }
+
+                        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
+                        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices);
+                        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
+                        mesh.set_indices(Some(Indices::U32(indices)));
+
+                        if uvs.len() > 0 {
+                            mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
+                            if let Err(e) = mesh.generate_tangents() {
+                                println!("error generating tangents: {:?}", e);
+                            }
+                        }
+
+                        if map_asset.material_handles.contains_key(texture_name) {
+                            gchildren.spawn(PbrBundle {
+                                mesh: meshes.add(mesh),
+                                material: map_asset
+                                    .material_handles
+                                    .get(texture_name)
+                                    .unwrap()
+                                    .clone(),
+                                ..default()
+                            });
+                        }
+                    }
+
+                    // spawn it's collider
+                    #[cfg(feature = "xpbd")]
+                    {
+                        if let Some(convex_hull) =
+                            bevy_xpbd_3d::prelude::Collider::convex_hull(brush_vertices)
+                        {
+                            let mut collider =
+                                gchildren.spawn((convex_hull, TransformBundle::default()));
+                            if classname == "trigger_multiple" {
+                                collider.insert((
+                                    TriggerMultiple {
+                                        target: props.get("target").unwrap().to_string(),
+                                    },
+                                    bevy_xpbd_3d::prelude::RigidBody::Dynamic,
+                                    bevy_xpbd_3d::prelude::Sensor,
+                                ));
+                            } else if classname == "trigger_once" {
+                                collider.insert((
+                                    TriggerOnce {
+                                        target: props.get("target").unwrap().to_string(),
+                                    },
+                                    bevy_xpbd_3d::prelude::RigidBody::Dynamic,
+                                    bevy_xpbd_3d::prelude::Sensor,
+                                ));
+                            } else {
+                                collider.insert((bevy_xpbd_3d::prelude::RigidBody::Static,));
+                            }
+                        }
+                    }
+
+                    #[cfg(feature = "rapier")]
+                    {
+                        if let Some(convex_hull) =
+                            bevy_rapier3d::prelude::Collider::convex_hull(&brush_vertices)
+                        {
+                            let mut collider =
+                                gchildren.spawn((convex_hull, TransformBundle::default()));
+                            if classname == "trigger_multiple" {
+                                collider.insert((
+                                    TriggerMultiple {
+                                        target: props.get("target").unwrap().to_string(),
+                                    },
+                                    bevy_rapier3d::prelude::RigidBody::Dynamic,
+                                    bevy_rapier3d::prelude::Sensor,
+                                ));
+                            } else if classname == "trigger_once" {
+                                collider.insert((
+                                    TriggerOnce {
+                                        target: props.get("target").unwrap().to_string(),
+                                    },
+                                    bevy_rapier3d::prelude::RigidBody::Dynamic,
+                                    bevy_rapier3d::prelude::Sensor,
+                                ));
+                            } else {
+                                collider.insert((bevy_rapier3d::prelude::RigidBody::Static,));
+                            }
+                        }
+                    }
+                }
+            });
+
+            if let Some(target_name) = props.get("targetname") {
+                entity.insert(TriggerTarget {
+                    target_name: target_name.to_string(),
+                });
+            }
         });
-    });
-
-    if let Some(system) = post_build_hook.system {
-        commands.run_system(system);
     }
+
+    ev_post_build_map.send(PostBuildMapEvent { map: map_entity });
 }
 
-pub fn cleanup_spawned_entities_system(
-    mut commands: Commands,
-    q_spawning_entities: Query<Entity, With<MapEntityProperties>>,
-) {
-    for entity in q_spawning_entities.iter() {
-        commands.entity(entity).remove::<MapEntityProperties>();
-    }
-}
+// pub fn cleanup_spawned_entities_system(
+//     mut commands: Commands,
+//     q_spawning_entities: Query<Entity, With<MapEntityProperties>>,
+// ) {
+//     for entity in q_spawning_entities.iter() {
+//         commands.entity(entity).remove::<MapEntityProperties>();
+//     }
+// }

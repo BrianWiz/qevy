@@ -8,7 +8,7 @@ use bevy::render::texture::ImageSamplerDescriptor;
 use bevy::render::texture::ImageType;
 
 use crate::components::Map;
-use crate::{MapAsset, PostMapBuildHook};
+use crate::{MapAsset, PostBuildMapEvent};
 
 pub fn handle_loaded_map_system(
     mut commands: Commands,
@@ -16,7 +16,7 @@ pub fn handle_loaded_map_system(
     mut map_assets: ResMut<Assets<MapAsset>>,
     mut ev_asset: EventReader<AssetEvent<MapAsset>>,
     mut q_maps: Query<Entity, With<Map>>,
-    mut post_build_hook: ResMut<PostMapBuildHook>,
+    mut post_build_event: EventWriter<PostBuildMapEvent>,
 ) {
     for ev in ev_asset.read() {
         match ev {
@@ -29,7 +29,7 @@ pub fn handle_loaded_map_system(
                         map_asset,
                         &mut meshes,
                         &mut commands,
-                        &mut post_build_hook,
+                        &mut post_build_event,
                     );
                 }
             }
@@ -68,6 +68,8 @@ pub async fn load_map<'a>(map_asset: &mut MapAsset, load_context: &mut LoadConte
                 );
                 let mat = StandardMaterial {
                     base_color_texture: Some(texture_handle),
+                    perceptual_roughness: 0.65,
+                    metallic: 0.8,
                     ..default()
                 };
                 let mat_handle = load_context.add_loaded_labeled_asset::<StandardMaterial>(

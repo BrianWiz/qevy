@@ -10,6 +10,7 @@ use thiserror::Error;
 mod build;
 pub mod components;
 pub mod conversions;
+pub mod gameplay_systems;
 mod load;
 
 #[derive(Debug, Asset, TypePath)]
@@ -77,6 +78,11 @@ impl AssetLoader for MapAssetLoader {
     }
 }
 
+#[derive(Event)]
+pub struct PostBuildMapEvent {
+    pub map: Entity,
+}
+
 #[derive(Default, Resource)]
 pub struct PostMapBuildHook {
     pub system: Option<SystemId>,
@@ -88,7 +94,8 @@ impl Plugin for MapAssetLoaderPlugin {
         app.init_asset::<MapAsset>()
             .init_resource::<PostMapBuildHook>()
             .init_asset_loader::<MapAssetLoader>()
-            .add_systems(PreUpdate, load::handle_loaded_map_system)
-            .add_systems(PostUpdate, build::cleanup_spawned_entities_system);
+            .add_event::<components::TriggeredEvent>()
+            .add_event::<PostBuildMapEvent>()
+            .add_systems(PreUpdate, load::handle_loaded_map_system);
     }
 }

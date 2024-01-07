@@ -23,7 +23,7 @@ fn main() {
             DefaultPlugins,
             qevy::MapAssetLoaderPlugin,
             PhysicsPlugins::default(), // XPBD
-                                       //PhysicsDebugPlugin::default(),
+            PhysicsDebugPlugin::default(),
         ))
         .add_systems(Startup, (setup, spawn_map, spawn_character))
         .add_systems(Update, (movement, grab_mouse))
@@ -53,11 +53,11 @@ fn my_post_build_map_hook(
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut commands: Commands,
-    mut q_map_entities: Query<(Entity, &MapEntityProperties)>,
+    mut map_entities: Query<(Entity, &MapEntityProperties)>,
 ) {
     // to set these up, see the .fgd file in the TrenchBroom
     // game folder for Qevy Example also see the readme
-    for (entity, props) in q_map_entities.iter_mut() {
+    for (entity, props) in map_entities.iter_mut() {
         match props.classname.as_str() {
             "spawn_point" => {
                 commands.entity(entity).insert(TransformBundle {
