@@ -23,7 +23,7 @@ fn main() {
             DefaultPlugins,
             qevy::MapAssetLoaderPlugin,
             PhysicsPlugins::default(), // XPBD
-            PhysicsDebugPlugin::default(),
+                                       //PhysicsDebugPlugin::default(),
         ))
         .add_systems(Startup, (spawn_map, spawn_character))
         .add_systems(Update, (movement, grab_mouse, my_post_build_map_system))
