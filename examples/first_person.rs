@@ -3,7 +3,7 @@ use bevy::window::PrimaryWindow;
 use bevy::{input::mouse::MouseMotion, window::CursorGrabMode};
 use bevy_xpbd_3d::prelude::*;
 
-use qevy::{components::MapEntityProperties, PostMapBuildHook};
+use qevy::{components::MapEntityProperties, PostBuildMapEvent};
 
 const MOVE_SPEED: f32 = 2.0;
 const MOUSE_SENSITIVITY: f32 = 0.1;
@@ -25,17 +25,9 @@ fn main() {
             PhysicsPlugins::default(), // XPBD
             PhysicsDebugPlugin::default(),
         ))
-        .add_systems(Startup, (setup, spawn_map, spawn_character))
-        .add_systems(Update, (movement, grab_mouse))
+        .add_systems(Startup, (spawn_map, spawn_character))
+        .add_systems(Update, (movement, grab_mouse, my_post_build_map_system))
         .run();
-}
-
-fn setup(world: &mut World) {
-    // register a system with the post map build hook
-    let system = world.register_system(my_post_build_map_hook);
-    if let Some(mut hook) = world.get_resource_mut::<PostMapBuildHook>() {
-        hook.system = Some(system);
-    }
 }
 
 fn spawn_map(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -49,60 +41,63 @@ fn spawn_map(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 }
 
-fn my_post_build_map_hook(
+pub fn my_post_build_map_system(
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut commands: Commands,
-    mut map_entities: Query<(Entity, &MapEntityProperties)>,
+    mut event_reader: EventReader<PostBuildMapEvent>,
+    mut map_entities: Query<(Entity, &qevy::components::MapEntityProperties)>,
 ) {
-    // to set these up, see the .fgd file in the TrenchBroom
-    // game folder for Qevy Example also see the readme
-    for (entity, props) in map_entities.iter_mut() {
-        match props.classname.as_str() {
-            "spawn_point" => {
-                commands.entity(entity).insert(TransformBundle {
-                    local: props.transform,
-                    ..default()
-                });
-            }
-            "light" => {
-                commands.entity(entity).insert(PointLightBundle {
-                    transform: props.transform,
-                    point_light: PointLight {
-                        color: props.get_property_as_color("color", Color::WHITE),
-                        radius: props.get_property_as_f32("radius", 0.0),
-                        range: props.get_property_as_f32("range", 10.0),
-                        intensity: props.get_property_as_f32("intensity", 800.0),
-                        shadows_enabled: props.get_property_as_bool("shadows_enabled", false),
+    for _ in event_reader.read() {
+        // to set these up, see the .fgd file in the TrenchBroom
+        // game folder for Qevy Example also see the readme
+        for (entity, props) in map_entities.iter_mut() {
+            match props.classname.as_str() {
+                "spawn_point" => {
+                    commands.entity(entity).insert(TransformBundle {
+                        local: props.transform,
                         ..default()
-                    },
-                    ..default()
-                });
-            }
-            "directional_light" => {
-                commands.entity(entity).insert(DirectionalLightBundle {
-                    transform: props.transform,
-                    directional_light: DirectionalLight {
-                        color: props.get_property_as_color("color", Color::WHITE),
-                        illuminance: props.get_property_as_f32("illuminance", 10000.0),
-                        shadows_enabled: true, //props.get_property_as_bool("shadows_enabled", false),
+                    });
+                }
+                "light" => {
+                    commands.entity(entity).insert(PointLightBundle {
+                        transform: props.transform,
+                        point_light: PointLight {
+                            color: props.get_property_as_color("color", Color::WHITE),
+                            radius: props.get_property_as_f32("radius", 0.0),
+                            range: props.get_property_as_f32("range", 30.0),
+                            intensity: props.get_property_as_f32("intensity", 800.0),
+                            shadows_enabled: props.get_property_as_bool("shadows_enabled", false),
+                            ..default()
+                        },
                         ..default()
-                    },
-                    ..default()
-                });
-            }
-            "monkey" => {
-                commands.entity(entity).insert(PbrBundle {
-                    transform: props.transform,
-                    mesh: asset_server.load("models/monkey.gltf#Mesh0/Primitive0"),
-                    material: materials.add(StandardMaterial {
-                        base_color: Color::rgb(0.5, 0.5, 0.5),
+                    });
+                }
+                "directional_light" => {
+                    commands.entity(entity).insert(DirectionalLightBundle {
+                        transform: props.transform,
+                        directional_light: DirectionalLight {
+                            color: props.get_property_as_color("color", Color::WHITE),
+                            illuminance: props.get_property_as_f32("illuminance", 10000.0),
+                            shadows_enabled: props.get_property_as_bool("shadows_enabled", false),
+                            ..default()
+                        },
                         ..default()
-                    }),
-                    ..default()
-                });
+                    });
+                }
+                "monkey" => {
+                    commands.entity(entity).insert(PbrBundle {
+                        transform: props.transform,
+                        mesh: asset_server.load("models/monkey.gltf#Mesh0/Primitive0"),
+                        material: materials.add(StandardMaterial {
+                            base_color: Color::rgb(0.5, 0.5, 0.5),
+                            ..default()
+                        }),
+                        ..default()
+                    });
+                }
+                _ => {}
             }
-            _ => {}
         }
     }
 }
