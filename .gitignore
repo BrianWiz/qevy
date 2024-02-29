@@ -1,5 +1,3 @@
 /target
 /Cargo.lock
-example/assets/autosave
-
-assets/autosave/
+**/autosave
