@@ -2,18 +2,13 @@ use bevy::prelude::*;
 use bevy::render::mesh::Indices;
 use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::render_resource::PrimitiveTopology;
+
 use std::collections::BTreeMap;
 
 use crate::components::*;
 use crate::conversions::*;
 
 use crate::{MapAsset, PostBuildMapEvent};
-
-#[cfg(feature = "xpbd")]
-use bevy_xpbd_3d::prelude::*;
-
-#[cfg(feature = "rapier")]
-use bevy_rapier3d::prelude::*;
 
 pub fn build_map(
     map_entity: Entity,
