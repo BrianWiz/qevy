@@ -1,6 +1,3 @@
-use crate::components::*;
-use bevy::prelude::*;
-
 #[cfg(feature = "rapier")]
 use bevy_rapier3d::prelude::*;
 

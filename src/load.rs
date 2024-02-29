@@ -1,6 +1,7 @@
 use bevy::asset::LoadContext;
 use bevy::asset::LoadedAsset;
 use bevy::prelude::*;
+use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::texture::CompressedImageFormats;
 use bevy::render::texture::ImageAddressMode;
 use bevy::render::texture::ImageSampler;
@@ -58,6 +59,7 @@ pub async fn load_map<'a>(map_asset: &mut MapAsset, load_context: &mut LoadConte
                     address_mode_v: ImageAddressMode::Repeat,
                     ..default()
                 }),
+                RenderAssetUsages::RENDER_WORLD,
             );
 
             if texture.is_ok() {

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy::render::mesh::Indices;
+use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::render_resource::PrimitiveTopology;
-use shambler::entity;
 use std::collections::BTreeMap;
 
 use crate::components::*;
@@ -173,10 +173,13 @@ pub fn build_map(
                             continue;
                         }
 
-                        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
+                        let mut mesh = Mesh::new(
+                            PrimitiveTopology::TriangleList,
+                            RenderAssetUsages::RENDER_WORLD,
+                        );
                         mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices);
                         mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
-                        mesh.set_indices(Some(Indices::U32(indices)));
+                        mesh.insert_indices(Indices::U32(indices));
 
                         if uvs.len() > 0 {
                             mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
