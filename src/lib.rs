@@ -6,6 +6,7 @@ use bevy::prelude::*;
 use bevy::reflect::TypePath;
 use std::collections::BTreeMap;
 use thiserror::Error;
+use tracing::info;
 
 mod build;
 pub mod components;
@@ -103,6 +104,7 @@ impl Plugin for MapAssetLoaderPlugin {
             .add_event::<build::SpawnMeshEvent>();
 
         if self.headless {
+            info!("Using headless map loader. Only colliders will be added.");
             app.add_systems(PreUpdate, load::handle_loaded_map_system);
             app.init_asset_loader::<HeadlessMapAssetLoader>();
         } else {
