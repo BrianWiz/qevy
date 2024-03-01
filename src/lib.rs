@@ -43,38 +43,38 @@ impl AssetLoader for MapAssetLoader {
     type Asset = MapAsset;
     type Settings = ();
     type Error = MapAssetLoaderError;
-    /// loads the .map file into a MapAsset
     fn load<'a>(
         &'a self,
         reader: &'a mut Reader,
-        _settings: &'a (),
+        _settings: &'a Self::Settings,
         load_context: &'a mut LoadContext,
     ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
-        Box::pin(async move {
-            let mut bytes = Vec::new();
-            reader.read_to_end(&mut bytes).await?;
-            if let Ok(map) = std::str::from_utf8(&bytes)
-                .expect("invalid utf8")
-                .parse::<shalrath::repr::Map>()
-            {
-                let geomap = Some(shambler::GeoMap::new(map.clone()));
-                let mut map = MapAsset {
-                    geomap: geomap,
-                    texture_sizes: BTreeMap::new(),
-                    material_handles: BTreeMap::new(),
-                };
-                load::load_map(&mut map, load_context).await;
-                return Ok(map);
-            }
-            Err(MapAssetLoaderError::Io(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                "invalid map",
-            )))
-        })
+        load::load(reader, load_context, false)
     }
 
     fn extensions(&self) -> &[&str] {
         &["map"]
+    }
+}
+
+#[derive(Default)]
+pub struct HeadlessMapAssetLoader;
+
+impl AssetLoader for HeadlessMapAssetLoader {
+    type Asset = MapAsset;
+    type Settings = ();
+    type Error = MapAssetLoaderError;
+    fn load<'a>(
+        &'a self,
+        reader: &'a mut Reader,
+        _settings: &'a Self::Settings,
+        load_context: &'a mut LoadContext,
+    ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
+        load::load(reader, load_context, true)
+    }
+
+    fn extensions(&self) -> &[&str] {
+        load::extensions()
     }
 }
 
@@ -98,18 +98,19 @@ impl Plugin for MapAssetLoaderPlugin {
     fn build(&self, app: &mut App) {
         app.init_asset::<MapAsset>()
             .init_resource::<PostMapBuildHook>()
-            .init_asset_loader::<MapAssetLoader>()
             .add_event::<components::TriggeredEvent>()
             .add_event::<PostBuildMapEvent>()
             .add_event::<build::SpawnMeshEvent>();
 
         if self.headless {
             app.add_systems(PreUpdate, load::handle_loaded_map_system);
+            app.init_asset_loader::<HeadlessMapAssetLoader>();
         } else {
             app.add_systems(
                 PreUpdate,
                 (load::handle_loaded_map_system, build::mesh_spawn_system).chain(),
             );
+            app.init_asset_loader::<MapAssetLoader>();
         }
     }
 }

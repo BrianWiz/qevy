@@ -1,8 +1,10 @@
 use crate::build::SpawnMeshEvent;
-use crate::components::*;
+use crate::{components::*, MapAssetLoaderError};
 use crate::{MapAsset, PostBuildMapEvent};
-use bevy::asset::LoadContext;
+use bevy::asset::io::Reader;
+use bevy::asset::AsyncReadExt;
 use bevy::asset::LoadedAsset;
+use bevy::asset::{BoxedFuture, LoadContext};
 use bevy::prelude::*;
 use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::texture::CompressedImageFormats;
@@ -10,6 +12,42 @@ use bevy::render::texture::ImageAddressMode;
 use bevy::render::texture::ImageSampler;
 use bevy::render::texture::ImageSamplerDescriptor;
 use bevy::render::texture::ImageType;
+use std::collections::BTreeMap;
+
+pub(crate) fn extensions() -> &'static [&'static str] {
+    &["map"]
+}
+
+pub(crate) fn load<'a>(
+    reader: &'a mut Reader,
+    load_context: &'a mut LoadContext,
+    headless: bool,
+) -> BoxedFuture<'a, Result<MapAsset, MapAssetLoaderError>> {
+    Box::pin(async move {
+        let mut bytes = Vec::new();
+        reader.read_to_end(&mut bytes).await?;
+        if let Ok(map) = std::str::from_utf8(&bytes)
+            .expect("invalid utf8")
+            .parse::<shalrath::repr::Map>()
+        {
+            let geomap = Some(shambler::GeoMap::new(map.clone()));
+            let mut map = MapAsset {
+                geomap: geomap,
+                texture_sizes: BTreeMap::new(),
+                material_handles: BTreeMap::new(),
+            };
+
+            if !headless {
+                load_map_textures(&mut map, load_context).await;
+            }
+            return Ok(map);
+        }
+        Err(MapAssetLoaderError::Io(std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            "invalid map",
+        )))
+    })
+}
 
 pub(crate) fn handle_loaded_map_system(
     mut commands: Commands,
@@ -39,7 +77,10 @@ pub(crate) fn handle_loaded_map_system(
     }
 }
 
-pub(crate) async fn load_map<'a>(map_asset: &mut MapAsset, load_context: &mut LoadContext<'a>) {
+pub(crate) async fn load_map_textures<'a>(
+    map_asset: &mut MapAsset,
+    load_context: &mut LoadContext<'a>,
+) {
     let geomap = map_asset.geomap.as_mut().unwrap();
 
     // for each texture, load it into the asset server
