@@ -80,7 +80,6 @@ pub fn xpbd_trigger_system(
                         ..default()
                     },
                 );
-                println!("intersections: {:?}", intersections.len());
 
                 for entity in intersections.iter() {
                     if *entity == instigator_entity {
