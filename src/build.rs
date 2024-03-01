@@ -226,6 +226,7 @@ pub fn build_map(
                     }
 
                     #[cfg(feature = "rapier")]
+                    #[cfg(not(feature = "xpbd"))]
                     {
                         if let Some(convex_hull) =
                             bevy_rapier3d::prelude::Collider::convex_hull(&brush_vertices)
