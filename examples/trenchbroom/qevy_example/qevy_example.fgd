@@ -3,7 +3,12 @@
 //=======================================================
 @SolidClass = worldspawn : "World Entity" []
 @SolidClass = geometry : "Standard Geometry Brush" []
-@SolidClass = sensor : "Sensor Volume" []
+@SolidClass = trigger_multiple : "Trigger Volume" []
+@SolidClass = trigger_once : "Trigger Once" []
+@SolidClass = mover : "Mover Volume" [
+	translation(string) : "Moved Translation (x y z)" : "0 0 0"
+	speed(float) : "Speed" : 1
+]
 
 //=======================================================
 // gameplay

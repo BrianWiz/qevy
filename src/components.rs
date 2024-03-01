@@ -126,3 +126,29 @@ pub struct TriggerTarget {
 
 #[derive(Default, Component)]
 pub struct TriggerInstigator;
+
+#[derive(Default, Component)]
+pub struct Mover {
+    pub speed: f32,
+    pub destination_translation: Vec3,
+    pub start_translation: Vec3,
+}
+
+#[derive(Component)]
+pub struct Door {
+    pub open_time: std::time::Duration,
+    pub triggered_time: Option<std::time::Instant>,
+    pub key: Option<String>,
+    pub open_once: bool,
+}
+
+impl Default for Door {
+    fn default() -> Self {
+        Self {
+            open_time: std::time::Duration::from_secs(1),
+            triggered_time: None,
+            key: None,
+            open_once: false,
+        }
+    }
+}
