@@ -57,7 +57,7 @@ pub fn my_post_build_map_system(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut commands: Commands,
     mut event_reader: EventReader<PostBuildMapEvent>,
-    mut map_entities: Query<(Entity, &qevy::components::MapEntityProperties)>,
+    mut map_entities: Query<(Entity, &MapEntityProperties)>,
 ) {
     for _ in event_reader.read() {
         // to set these up, see the .fgd file in the TrenchBroom
@@ -113,7 +113,7 @@ fn spawn_character(mut commands: Commands, mut q_windows: Query<&mut Window, Wit
         RigidBody::Dynamic,
         GravityScale(0.0),
         Rotation(Quat::IDENTITY),
-        Collider::ball(0.5),
+        Collider::sphere(0.5),
         TransformBundle {
             local: Transform::from_xyz(0.0, 5.0, 0.0),
             ..default()
@@ -129,7 +129,7 @@ fn spawn_character(mut commands: Commands, mut q_windows: Query<&mut Window, Wit
 
 fn movement(
     time: Res<Time>,
-    keyboard_input: Res<Input<KeyCode>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
     mut mouse_motion: EventReader<MouseMotion>,
     mut cameras: Query<&mut Transform, (With<Camera3d>, Without<Character>)>,
     mut characters: Query<(&Transform, &mut LinearVelocity, &mut Rotation), With<Character>>,
@@ -137,22 +137,23 @@ fn movement(
     for (collider_transform, mut linear_velocity, mut rotation) in &mut characters {
         for mut camera_transform in &mut cameras {
             // Directional movement
-            if keyboard_input.pressed(KeyCode::W) || keyboard_input.pressed(KeyCode::Up) {
+            if keyboard_input.pressed(KeyCode::KeyW) || keyboard_input.pressed(KeyCode::ArrowUp) {
                 linear_velocity.0 -= rotation.0 * MOVE_SPEED * Vec3::Z;
             }
-            if keyboard_input.pressed(KeyCode::S) || keyboard_input.pressed(KeyCode::Down) {
+            if keyboard_input.pressed(KeyCode::KeyS) || keyboard_input.pressed(KeyCode::ArrowDown) {
                 linear_velocity.0 += rotation.0 * MOVE_SPEED * Vec3::Z;
             }
-            if keyboard_input.pressed(KeyCode::A) || keyboard_input.pressed(KeyCode::Left) {
+            if keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft) {
                 linear_velocity.0 -= rotation.0 * MOVE_SPEED * Vec3::X;
             }
-            if keyboard_input.pressed(KeyCode::D) || keyboard_input.pressed(KeyCode::Right) {
+            if keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight)
+            {
                 linear_velocity.0 += rotation.0 * MOVE_SPEED * Vec3::X;
             }
-            if keyboard_input.pressed(KeyCode::Q) || keyboard_input.pressed(KeyCode::Space) {
+            if keyboard_input.pressed(KeyCode::KeyQ) || keyboard_input.pressed(KeyCode::Space) {
                 linear_velocity.y += MOVE_SPEED;
             }
-            if keyboard_input.pressed(KeyCode::X) || keyboard_input.pressed(KeyCode::ShiftLeft) {
+            if keyboard_input.pressed(KeyCode::KeyX) || keyboard_input.pressed(KeyCode::ShiftLeft) {
                 linear_velocity.y -= MOVE_SPEED;
             }
 
@@ -233,8 +234,8 @@ pub fn door_system(
 
 fn grab_mouse(
     mut windows: Query<&mut Window>,
-    mouse: Res<Input<MouseButton>>,
-    key: Res<Input<KeyCode>>,
+    mouse: Res<ButtonInput<MouseButton>>,
+    key: Res<ButtonInput<KeyCode>>,
 ) {
     let mut window = windows.single_mut();
 

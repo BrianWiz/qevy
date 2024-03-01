@@ -9,12 +9,6 @@ use crate::conversions::*;
 
 use crate::{MapAsset, PostBuildMapEvent};
 
-#[cfg(feature = "xpbd")]
-use bevy_xpbd_3d::prelude::*;
-
-#[cfg(feature = "rapier")]
-use bevy_rapier3d::prelude::*;
-
 pub fn build_map(
     map_entity: Entity,
     map_asset: &mut MapAsset,

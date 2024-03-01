@@ -22,6 +22,9 @@ Under the example folder, you will find an example of how to use this plugin.
 3. Set the game's path to the `example/assets` folder.
 4. Open the `example.map` file located in `example/assets`.
 
+## Special Thanks
+Special thanks to Shfty over at Qodot for the wonderful [Shambler crate](https://github.com/QodotPlugin/shambler) which handles much of the heavy lifting.
+
 ## License
 
 This project is licensed under both MIT and Apache 2.0. You may use this project under the terms of either license.
