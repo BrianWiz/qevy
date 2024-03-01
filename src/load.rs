@@ -1,3 +1,6 @@
+use crate::build::SpawnMeshEvent;
+use crate::components::*;
+use crate::{MapAsset, PostBuildMapEvent};
 use bevy::asset::LoadContext;
 use bevy::asset::LoadedAsset;
 use bevy::prelude::*;
@@ -8,16 +11,13 @@ use bevy::render::texture::ImageSampler;
 use bevy::render::texture::ImageSamplerDescriptor;
 use bevy::render::texture::ImageType;
 
-use crate::components::*;
-use crate::{MapAsset, PostBuildMapEvent};
-
 pub(crate) fn handle_loaded_map_system(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut map_assets: ResMut<Assets<MapAsset>>,
     mut ev_asset: EventReader<AssetEvent<MapAsset>>,
     mut q_maps: Query<Entity, With<Map>>,
     mut post_build_event: EventWriter<PostBuildMapEvent>,
+    mut spawn_mesh_event: EventWriter<SpawnMeshEvent>,
 ) {
     for ev in ev_asset.read() {
         match ev {
@@ -28,8 +28,8 @@ pub(crate) fn handle_loaded_map_system(
                     crate::build::build_map(
                         map_entity,
                         map_asset,
-                        &mut meshes,
                         &mut commands,
+                        &mut spawn_mesh_event,
                         &mut post_build_event,
                     );
                 }

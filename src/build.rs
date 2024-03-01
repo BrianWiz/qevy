@@ -9,12 +9,19 @@ use crate::conversions::*;
 
 use crate::{MapAsset, PostBuildMapEvent};
 
+#[derive(Event)]
+pub struct SpawnMeshEvent {
+    map: Entity,
+    mesh: Mesh,
+    material: Handle<StandardMaterial>,
+}
+
 pub fn build_map(
     map_entity: Entity,
     map_asset: &mut MapAsset,
-    meshes: &mut Assets<Mesh>,
     commands: &mut Commands,
-    ev_post_build_map: &mut EventWriter<PostBuildMapEvent>,
+    spawn_mesh_event: &mut EventWriter<SpawnMeshEvent>,
+    post_build_map_event: &mut EventWriter<PostBuildMapEvent>,
 ) {
     let geomap = map_asset.geomap.as_ref().unwrap();
 
@@ -183,14 +190,14 @@ pub fn build_map(
                         }
 
                         if map_asset.material_handles.contains_key(texture_name) {
-                            gchildren.spawn(PbrBundle {
-                                mesh: meshes.add(mesh),
+                            spawn_mesh_event.send(SpawnMeshEvent {
+                                map: map_entity,
+                                mesh: mesh,
                                 material: map_asset
                                     .material_handles
                                     .get(texture_name)
                                     .unwrap()
                                     .clone(),
-                                ..default()
                             });
                         }
                     }
@@ -265,14 +272,21 @@ pub fn build_map(
         });
     }
 
-    ev_post_build_map.send(PostBuildMapEvent { map: map_entity });
+    post_build_map_event.send(PostBuildMapEvent { map: map_entity });
 }
 
-// pub fn cleanup_spawned_entities_system(
-//     mut commands: Commands,
-//     q_spawning_entities: Query<Entity, With<MapEntityProperties>>,
-// ) {
-//     for entity in q_spawning_entities.iter() {
-//         commands.entity(entity).remove::<MapEntityProperties>();
-//     }
-// }
+pub fn mesh_spawn_system(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut spawn_mesh_event: EventReader<SpawnMeshEvent>,
+) {
+    for ev in spawn_mesh_event.read() {
+        commands.entity(ev.map).with_children(|children| {
+            children.spawn(PbrBundle {
+                mesh: meshes.add(ev.mesh.to_owned()),
+                material: ev.material.to_owned(),
+                ..default()
+            });
+        });
+    }
+}

@@ -22,7 +22,7 @@ fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
-            qevy::MapAssetLoaderPlugin,
+            qevy::MapAssetLoaderPlugin::default(),
             PhysicsPlugins::default(), // XPBD
                                        //PhysicsDebugPlugin::default(),
         ))

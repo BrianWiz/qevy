@@ -88,7 +88,12 @@ pub struct PostMapBuildHook {
     pub system: Option<SystemId>,
 }
 
-pub struct MapAssetLoaderPlugin;
+#[derive(Default)]
+pub struct MapAssetLoaderPlugin {
+    /// If true, the plugin will not add meshes, only colliders
+    pub headless: bool,
+}
+
 impl Plugin for MapAssetLoaderPlugin {
     fn build(&self, app: &mut App) {
         app.init_asset::<MapAsset>()
@@ -96,6 +101,15 @@ impl Plugin for MapAssetLoaderPlugin {
             .init_asset_loader::<MapAssetLoader>()
             .add_event::<components::TriggeredEvent>()
             .add_event::<PostBuildMapEvent>()
-            .add_systems(PreUpdate, load::handle_loaded_map_system);
+            .add_event::<build::SpawnMeshEvent>();
+
+        if self.headless {
+            app.add_systems(PreUpdate, load::handle_loaded_map_system);
+        } else {
+            app.add_systems(
+                PreUpdate,
+                (load::handle_loaded_map_system, build::mesh_spawn_system).chain(),
+            );
+        }
     }
 }

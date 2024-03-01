@@ -29,5 +29,6 @@ name = "first_person"
 required-features = ["xpbd"]
 
 [features]
+default = ["bevy_rapier3d"]
 xpbd = ["bevy_xpbd_3d"]
 rapier = ["bevy_rapier3d"]
