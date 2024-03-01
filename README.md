@@ -15,6 +15,8 @@ Supported Physics Engines: XPBD, Rapier
 
 ## Example project & TrenchBroom
 
+Run the example project with `cargo run --release --features="xpbd" --example first_person`
+
 Under the example folder, you will find an example of how to use this plugin.
 
 1. The `Quevy Example` folder inside the `trenchbroom` folder is meant to be moved into the TrenchBroom game's folder (example: `C:\Users\YOUR USER\AppData\Roaming\TrenchBroom\games\Qevy Example`)

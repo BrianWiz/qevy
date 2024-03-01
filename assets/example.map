@@ -3,7 +3,7 @@
 // entity 0
 {
 "classname" "worldspawn"
-"_tb_textures" "textures"
+"_tb_textures" "textures;textures/common"
 // brush 0
 {
 ( -192 512 0 ) ( -192 -256 0 ) ( -192 -256 -64 ) __TB_empty 0 0 0 1 1
@@ -190,6 +190,52 @@
 // entity 2
 {
 "classname" "directional_light"
-"origin" "126.432 -56.931 66.7989"
+"origin" "-1.568 151.069 66.7989"
 "angles" "-40 32 -20"
+}
+// entity 3
+{
+"classname" "mover"
+"targetname" "door_stairs"
+"destination" "2,0,0"
+"mover_type" "door"
+// brush 0
+{
+( 224 32 0 ) ( 224 32 1 ) ( 224 31 0 ) grey_tiles 0 0 0 1 1
+( 320 -256 16 ) ( 320 -256 17 ) ( 321 -256 16 ) grey_tiles 0 0 0 1 1
+( 224 32 0 ) ( 224 31 0 ) ( 225 32 0 ) grey_tiles 0 0 0 1 1
+( 320 -256 128 ) ( 321 -256 128 ) ( 320 -257 128 ) grey_tiles 0 0 0 1 1
+( 224 0 0 ) ( 225 0 0 ) ( 224 0 1 ) grey_tiles 0 0 0 1 1
+( 256 -256 16 ) ( 256 -257 16 ) ( 256 -256 17 ) grey_tiles 0 0 0 1 1
+}
+}
+// entity 4
+{
+"classname" "mover"
+"targetname" "door_stairs"
+"destination" "-2,0,0"
+"mover_type" "door"
+// brush 0
+{
+( 224 288 0 ) ( 224 288 1 ) ( 224 287 0 ) grey_tiles 0 0 0 1 1
+( 320 0 16 ) ( 320 0 17 ) ( 321 0 16 ) grey_tiles 0 0 0 1 1
+( 224 288 0 ) ( 224 287 0 ) ( 225 288 0 ) grey_tiles 0 0 0 1 1
+( 320 0 128 ) ( 321 0 128 ) ( 320 -1 128 ) grey_tiles 0 0 0 1 1
+( 224 256 0 ) ( 225 256 0 ) ( 224 256 1 ) grey_tiles 0 0 0 1 1
+( 256 0 16 ) ( 256 -1 16 ) ( 256 0 17 ) grey_tiles 0 0 0 1 1
+}
+}
+// entity 5
+{
+"classname" "trigger_multiple"
+"target" "door_stairs"
+// brush 0
+{
+( 160 -256 0 ) ( 160 -255 0 ) ( 160 -256 1 ) common/trigger 0 0 0 1 1
+( 128 -256 0 ) ( 128 -256 1 ) ( 129 -256 0 ) common/trigger 0 0 0 1 1
+( 128 -256 0 ) ( 129 -256 0 ) ( 128 -255 0 ) common/trigger 0 0 0 1 1
+( 224 256 160 ) ( 224 257 160 ) ( 225 256 160 ) common/trigger 0 0 0 1 1
+( 224 256 16 ) ( 225 256 16 ) ( 224 256 17 ) common/trigger 0 0 0 1 1
+( 320 256 16 ) ( 320 256 17 ) ( 320 257 16 ) common/trigger 0 0 0 1 1
+}
 }

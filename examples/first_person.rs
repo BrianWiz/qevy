@@ -1,10 +1,10 @@
+use bevy::audio::Decodable;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy::{input::mouse::MouseMotion, window::CursorGrabMode};
 use bevy_xpbd_3d::prelude::*;
 
-use qevy::components::MapEntityProperties;
-use qevy::PostBuildMapEvent;
+use qevy::{components::*, PostBuildMapEvent};
 
 const MOVE_SPEED: f32 = 2.0;
 const MOUSE_SENSITIVITY: f32 = 0.1;
@@ -27,7 +27,17 @@ fn main() {
                                        //PhysicsDebugPlugin::default(),
         ))
         .add_systems(Startup, (spawn_map, spawn_character))
-        .add_systems(Update, (movement, grab_mouse, my_post_build_map_system))
+        .add_systems(
+            Update,
+            (
+                movement,
+                grab_mouse,
+                my_post_build_map_system,
+                door_system,
+                qevy::load::post_build_map_system,
+                qevy::gameplay_systems::xpbd_trigger_system,
+            ),
+        )
         .run();
 }
 
@@ -57,32 +67,6 @@ pub fn my_post_build_map_system(
                 "spawn_point" => {
                     commands.entity(entity).insert(TransformBundle {
                         local: props.transform,
-                        ..default()
-                    });
-                }
-                "light" => {
-                    commands.entity(entity).insert(PointLightBundle {
-                        transform: props.transform,
-                        point_light: PointLight {
-                            color: props.get_property_as_color("color", Color::WHITE),
-                            radius: props.get_property_as_f32("radius", 0.0),
-                            range: props.get_property_as_f32("range", 30.0),
-                            intensity: props.get_property_as_f32("intensity", 800.0),
-                            shadows_enabled: props.get_property_as_bool("shadows_enabled", false),
-                            ..default()
-                        },
-                        ..default()
-                    });
-                }
-                "directional_light" => {
-                    commands.entity(entity).insert(DirectionalLightBundle {
-                        transform: props.transform,
-                        directional_light: DirectionalLight {
-                            color: props.get_property_as_color("color", Color::WHITE),
-                            illuminance: props.get_property_as_f32("illuminance", 10000.0),
-                            shadows_enabled: props.get_property_as_bool("shadows_enabled", false),
-                            ..default()
-                        },
                         ..default()
                     });
                 }
@@ -125,6 +109,7 @@ fn spawn_character(mut commands: Commands, mut q_windows: Query<&mut Window, Wit
     // spawn the character
     commands.spawn((
         Character,
+        TriggerInstigator,
         RigidBody::Dynamic,
         GravityScale(0.0),
         Rotation(Quat::IDENTITY),
@@ -191,6 +176,58 @@ fn movement(
                 collider_transform.translation,
                 (1.0 / 60.0 * 1000.0) * time.delta_seconds(),
             );
+        }
+    }
+}
+
+pub fn door_system(
+    time: Res<Time>,
+    mut ev_reader: EventReader<TriggeredEvent>,
+    mut q_doors: Query<(&mut Door, &TriggerTarget, &mut Transform, &Mover)>,
+) {
+    for triggered_event in ev_reader.read() {
+        for (mut door, trigger_target, _, _) in q_doors.iter_mut() {
+            if trigger_target.target_name == triggered_event.target {
+                door.triggered_time = Some(std::time::Instant::now());
+            }
+        }
+    }
+
+    for (mut door, _, mut transform, mover) in q_doors.iter_mut() {
+        let triggered = if door.open_once {
+            door.triggered_time.is_some()
+        } else {
+            door.triggered_time.is_some()
+                && (std::time::Instant::now() - door.triggered_time.unwrap() < door.open_time)
+        };
+
+        // open
+        if triggered {
+            let destination = mover.destination_translation;
+            let direction = destination - transform.translation;
+            let move_distance = mover.speed * time.delta_seconds();
+
+            if direction.length() < move_distance {
+                transform.translation = destination;
+            } else {
+                transform.translation += direction.normalize() * move_distance;
+            }
+        // close
+        } else {
+            if !door.open_once && door.triggered_time.is_some() {
+                continue;
+            }
+            door.triggered_time = None;
+
+            let destination = mover.start_translation;
+            let direction = destination - transform.translation;
+            let move_distance = mover.speed * time.delta_seconds();
+
+            if direction.length() < move_distance {
+                transform.translation = destination;
+            } else {
+                transform.translation += direction.normalize() * move_distance;
+            }
         }
     }
 }

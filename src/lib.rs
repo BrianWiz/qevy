@@ -11,7 +11,7 @@ mod build;
 pub mod components;
 pub mod conversions;
 pub mod gameplay_systems;
-mod load;
+pub mod load;
 
 #[derive(Debug, Asset, TypePath)]
 pub struct MapAsset {

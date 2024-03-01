@@ -2,7 +2,6 @@ use bevy::prelude::*;
 use bevy::render::mesh::Indices;
 use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::render_resource::PrimitiveTopology;
-
 use std::collections::BTreeMap;
 
 use crate::components::*;
@@ -227,6 +226,7 @@ pub fn build_map(
                     }
 
                     #[cfg(feature = "rapier")]
+                    #[cfg(not(feature = "xpbd"))]
                     {
                         if let Some(convex_hull) =
                             bevy_rapier3d::prelude::Collider::convex_hull(&brush_vertices)
