@@ -20,7 +20,7 @@ thiserror = "1.0.50"
 usage = "1.4.0"
 
 shalrath = "0.2.5"
-shambler = { path = "../Shambler" }
+shambler = { git = "https://github.com/BrianWiz/shambler.git" }
 bevy_xpbd_3d = { version = "0.4.2", optional = true }
 bevy_rapier3d = { version = "0.25.0", optional = true }
 tracing = "0.1.40"
