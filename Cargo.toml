@@ -29,6 +29,10 @@ tracing = "0.1.40"
 name = "first_person"
 required-features = ["xpbd"]
 
+[[example]]
+name = "exporting_config"
+path = "examples/exporting_config.rs"
+
 [features]
 default = ["bevy_rapier3d"]
 xpbd = ["bevy_xpbd_3d"]
