@@ -19,7 +19,24 @@ fn main() {
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component, QevyEntityConfig, Default)]
-struct AnotherSolidClass;
+struct AnotherSolidClass {
+    test_string: String,
+    test_usize: usize,
+    test_bool: bool,
+    test_f32: f32,
+    test_f64: f64,
+    test_i32: i32,
+    test_i64: i64,
+    test_u32: u32,
+    test_u64: u64,
+}
+
+#[derive(Reflect, Default)]
+enum EnumTest {
+    #[default]
+    Test,
+    EnumVariantTest,
+}
 
 impl QevyEntityConfig for AnotherSolidClass {
     fn get_entity_type(&self) -> &QevyEntityType {

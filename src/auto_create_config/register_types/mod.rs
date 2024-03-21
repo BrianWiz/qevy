@@ -1,6 +1,6 @@
 use std::any::TypeId;
 
-use bevy::reflect::{reflect_trait, TypeRegistration, TypeRegistry};
+use bevy::reflect::{reflect_trait, Reflect, TypeRegistration, TypeRegistry};
 
 pub mod entities;
 
@@ -22,7 +22,7 @@ impl QevyEntityType {
 }
 
 #[reflect_trait]
-pub trait QevyEntityConfig {
+pub trait QevyEntityConfig: Reflect {
     fn get_base_classes(&self) -> Vec<TypeId> {
         vec![]
     }
@@ -38,7 +38,8 @@ pub trait QevyEntityConfig {
         my_registration: &TypeRegistration,
         registry: &TypeRegistry,
     ) -> String {
-        let short_name = my_registration.type_info().type_path_table().short_path();
+        let type_info = my_registration.type_info();
+        let short_name = type_info.type_path_table().short_path();
 
         let base_class_string = match self.get_entity_type() {
             QevyEntityType::Base => String::new(), // Base classes don't have base classes. I think?
@@ -47,9 +48,37 @@ pub trait QevyEntityConfig {
         let description = self.get_description();
         let entity_type = self.get_entity_type().to_fgd_string();
 
+        let types_string = match type_info {
+            bevy::reflect::TypeInfo::Struct(info) => {
+                let mut types_string = String::new();
+                for named_field in info.iter() {
+                    let name = named_field.name();
+                    let type_path = named_field.type_path_table().short_path();
+                    let fgd_type = match convert_types_to_fgd(type_path) {
+                        Ok(type_path) => type_path,
+                        Err(_) => "",
+                    };
+
+                    types_string.push_str(&format!("{}({})\n", name, fgd_type));
+                }
+
+                // remove the last newline
+                types_string.pop();
+
+                types_string
+            }
+            bevy::reflect::TypeInfo::TupleStruct(_) => todo!(),
+            bevy::reflect::TypeInfo::Tuple(_) => todo!(),
+            bevy::reflect::TypeInfo::List(_) => todo!(),
+            bevy::reflect::TypeInfo::Array(_) => todo!(),
+            bevy::reflect::TypeInfo::Map(_) => todo!(),
+            bevy::reflect::TypeInfo::Enum(_) => todo!(),
+            bevy::reflect::TypeInfo::Value(_) => todo!(),
+        };
+
         format!(
-            "{} {} = {} : \"{}\" []",
-            entity_type, base_class_string, short_name, description
+            "{} {} = {} : \"{}\" [{}]",
+            entity_type, base_class_string, short_name, description, types_string
         )
     }
 
@@ -71,5 +100,17 @@ pub trait QevyEntityConfig {
         }
 
         base_classes_string
+    }
+}
+
+struct TypeNotSupported(String);
+
+fn convert_types_to_fgd(short_type: &str) -> Result<&str, TypeNotSupported> {
+    match short_type {
+        "String" => Ok("string"),
+        "usize" | "u8" | "u16" | "u32" | "u64" | "i8" | "i16" | "i32" | "i64" => Ok("integer"),
+        "f32" | "f64" => Ok("float"),
+        "bool" => Ok("boolean"),
+        _ => Err(TypeNotSupported(short_type.to_string())),
     }
 }
