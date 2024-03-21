@@ -2,7 +2,6 @@ use std::any::TypeId;
 
 use bevy::reflect::{reflect_trait, TypeRegistration, TypeRegistry};
 
-pub mod base_classes;
 pub mod entities;
 
 #[derive(Debug, PartialEq)]

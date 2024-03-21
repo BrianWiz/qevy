@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use qevy::auto_create_config::register_types::{
-    base_classes::QevyRegisterBaseClass, entities::QevyRegisterSolidClass, QevyEntityConfig,
-    QevyEntityType, ReflectQevyEntityConfig,
+    entities::QevyRegisterSolidClass, QevyEntityConfig, QevyEntityType, ReflectQevyEntityConfig,
 };
 
 fn main() {
@@ -14,7 +13,7 @@ fn main() {
         .register_qevy_entity::<AnotherSolidClass>()
         .register_qevy_entity::<TestSolidClass>()
         .register_qevy_entity::<APointClass>()
-        .register_qevy_base_class::<TestBaseClass>()
+        .register_qevy_entity::<TestBaseClass>()
         .run();
 }
 
