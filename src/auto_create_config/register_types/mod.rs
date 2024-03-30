@@ -3,6 +3,7 @@ use std::any::TypeId;
 use bevy::reflect::{reflect_trait, Reflect, TypeRegistration, TypeRegistry};
 
 pub mod entities;
+pub mod properties;
 
 #[derive(Debug, PartialEq)]
 pub enum QevyEntityType {
@@ -55,6 +56,7 @@ pub trait QevyEntityConfig: Reflect {
                 types_string.push('\n');
 
                 for named_field in info.iter() {
+                    let field_type_id = named_field.type_id();
                     let name = named_field.name();
                     let type_path = named_field.type_path_table().short_path();
                     let fgd_type = match convert_types_to_fgd(type_path) {

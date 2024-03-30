@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use qevy::auto_create_config::register_types::{
-    entities::QevyRegisterSolidClass, QevyEntityConfig, QevyEntityType, ReflectQevyEntityConfig,
+    entities::QevyRegisterSolidClass, properties::ReflectQevyProperty, QevyEntityConfig,
+    QevyEntityType, ReflectQevyEntityConfig,
 };
 
 fn main() {
@@ -29,7 +30,7 @@ struct APointClass {
     test_i64: i64,
     test_u32: u32,
     test_u64: u64,
-    //test_base_class: ABaseClassInsideClass,
+    test_enum: EnumTest,
 }
 
 impl QevyEntityConfig for APointClass {
@@ -47,11 +48,7 @@ impl QevyEntityConfig for APointClass {
 struct AnotherSolidClass;
 
 #[derive(Reflect, Default)]
-struct ABaseClassInsideClass {
-    test_base_string: String,
-}
-
-#[derive(Reflect, Default)]
+#[reflect(QevyProperty, Default)]
 enum EnumTest {
     #[default]
     Test,
