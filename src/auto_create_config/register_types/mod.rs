@@ -118,9 +118,7 @@ fn convert_types_to_fgd(short_type: &str) -> Result<&str, TypeNotSupported> {
         "String" => Ok("string"),
         "usize" | "u8" | "u16" | "u32" | "u64" | "i8" | "i16" | "i32" | "i64" => Ok("integer"),
         "f32" | "f64" => Ok("float"),
-        "bool" => Ok(
-            
-        ),
+        "bool" => Ok("boolean"),
         _ => Err(TypeNotSupported(short_type.to_string())),
     }
 }
@@ -209,7 +207,7 @@ fn actually_get_default_value_for_field(field: &dyn Reflect, field_type: &str) -
         }
         "boolean" => {
             let value = field.downcast_ref::<bool>().unwrap();
-
+            
             match value {
                 true => "yes".to_string(),
                 false => "no".to_string(),
