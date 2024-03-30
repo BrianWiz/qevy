@@ -52,11 +52,11 @@ pub(crate) fn create_config(world: &mut World) {
 
 fn type_reg_to_export_string(type_reg: &TypeRegistration, registry: &TypeRegistry) -> String {
     if let Some(reflect_default) = type_reg.data::<ReflectDefault>() {
-        let value: Box<dyn Reflect> = reflect_default.default();
+        let default_value: Box<dyn Reflect> = reflect_default.default();
         if let Some(reflect_entity_config) = type_reg.data::<ReflectQevyEntityConfig>() {
-            let entity_config = reflect_entity_config.get(&*value).unwrap();
+            let entity_config = reflect_entity_config.get(&*default_value).unwrap();
 
-            return entity_config.get_export_string(type_reg, registry) + "\n";
+            return entity_config.get_export_string(type_reg, registry, &default_value) + "\n";
         }
 
         panic!("No ReflectQevyEntityConfig for type: {}\nThat could happen because you didn't add \"#[reflect[QevyEntityConfig)]\" to the component!", type_reg.type_info().type_path_table().short_path());

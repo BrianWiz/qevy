@@ -37,6 +37,7 @@ pub trait QevyEntityConfig: Reflect {
         &self,
         my_registration: &TypeRegistration,
         registry: &TypeRegistry,
+        default_value: &Box<dyn Reflect>,
     ) -> String {
         let type_info = my_registration.type_info();
         let short_name = type_info.type_path_table().short_path();
@@ -51,6 +52,8 @@ pub trait QevyEntityConfig: Reflect {
         let types_string = match type_info {
             bevy::reflect::TypeInfo::Struct(info) => {
                 let mut types_string = String::new();
+                types_string.push('\n');
+
                 for named_field in info.iter() {
                     let name = named_field.name();
                     let type_path = named_field.type_path_table().short_path();
@@ -59,7 +62,12 @@ pub trait QevyEntityConfig: Reflect {
                         Err(_) => "",
                     };
 
-                    types_string.push_str(&format!("{}({})\n", name, fgd_type));
+                    types_string.push_str(&format!(
+                        "{}({}) : \"\" : {}\n",
+                        name,
+                        fgd_type,
+                        get_default_value_for_field(default_value, name, type_path)
+                    ));
                 }
 
                 // remove the last newline
@@ -112,5 +120,48 @@ fn convert_types_to_fgd(short_type: &str) -> Result<&str, TypeNotSupported> {
         "f32" | "f64" => Ok("float"),
         "bool" => Ok("boolean"),
         _ => Err(TypeNotSupported(short_type.to_string())),
+    }
+}
+
+fn get_default_value_for_field(
+    default_value: &Box<dyn Reflect>,
+    field_name: &str,
+    field_type: &str,
+) -> String {
+    match default_value.reflect_ref() {
+        bevy::reflect::ReflectRef::Struct(default_struct) => {
+            if let Some(field) = default_struct.field(field_name) {
+                println!("Field Name: {}, Type: {}", field_name, field_type);
+                actually_get_default_value_for_field(field)
+            } else {
+                panic!("Field not found: {}", field_name);
+            }
+        }
+        bevy::reflect::ReflectRef::TupleStruct(_) => todo!(),
+        bevy::reflect::ReflectRef::Tuple(_) => todo!(),
+        bevy::reflect::ReflectRef::List(_) => todo!(),
+        bevy::reflect::ReflectRef::Array(_) => todo!(),
+        bevy::reflect::ReflectRef::Map(_) => todo!(),
+        bevy::reflect::ReflectRef::Enum(_) => todo!(),
+        bevy::reflect::ReflectRef::Value(_) => todo!(),
+    }
+}
+
+fn actually_get_default_value_for_field(field: &dyn Reflect) -> String {
+    println!("Field: {:?}", field);
+    let type_info = field.get_represented_type_info().unwrap();
+    
+    match type_info {
+        bevy::reflect::TypeInfo::Struct(_) => todo!(),
+        bevy::reflect::TypeInfo::TupleStruct(_) => todo!(),
+        bevy::reflect::TypeInfo::Tuple(_) => todo!(),
+        bevy::reflect::TypeInfo::List(_) => todo!(),
+        bevy::reflect::TypeInfo::Array(_) => todo!(),
+        bevy::reflect::TypeInfo::Map(_) => todo!(),
+        bevy::reflect::TypeInfo::Enum(_) => todo!(),
+        bevy::reflect::TypeInfo::Value(value) => {
+            println!("Value: {:?}", value);
+            return "0".to_string();       
+        },
     }
 }

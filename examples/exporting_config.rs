@@ -29,6 +29,12 @@ struct AnotherSolidClass {
     test_i64: i64,
     test_u32: u32,
     test_u64: u64,
+    //test_base_class: ABaseClassInsideClass,
+}
+
+#[derive(Reflect, Default)]
+struct ABaseClassInsideClass {
+    test_base_string: String,
 }
 
 #[derive(Reflect, Default)]
