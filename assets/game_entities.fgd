@@ -1,1 +1,14 @@
+@SolidClass = worldspawn : "World Entity" []
 @BaseClass  = TestBaseClass : "" []
+@SolidClass base(TestBaseClass) = AnotherSolidClass : "" []
+@SolidClass base() = TestSolidClass : "" []
+@PointClass base(TestBaseClass) = APointClass : "" [
+test_string(string) : "" : ""
+test_usize(integer) : "" : 0
+test_bool(boolean) : "" : no
+test_f32(float) : "" : "0"
+test_f64(float) : "" : "0"
+test_i32(integer) : "" : 0
+test_i64(integer) : "" : 0
+test_u32(integer) : "" : 0
+test_u64(integer) : "" : 0]

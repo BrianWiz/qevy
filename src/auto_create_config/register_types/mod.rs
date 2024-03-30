@@ -66,7 +66,7 @@ pub trait QevyEntityConfig: Reflect {
                         "{}({}) : \"\" : {}\n",
                         name,
                         fgd_type,
-                        get_default_value_for_field(default_value, name, type_path)
+                        get_default_value_for_field(default_value, name, fgd_type)
                     ));
                 }
 
@@ -118,7 +118,9 @@ fn convert_types_to_fgd(short_type: &str) -> Result<&str, TypeNotSupported> {
         "String" => Ok("string"),
         "usize" | "u8" | "u16" | "u32" | "u64" | "i8" | "i16" | "i32" | "i64" => Ok("integer"),
         "f32" | "f64" => Ok("float"),
-        "bool" => Ok("boolean"),
+        "bool" => Ok(
+            
+        ),
         _ => Err(TypeNotSupported(short_type.to_string())),
     }
 }
@@ -132,7 +134,7 @@ fn get_default_value_for_field(
         bevy::reflect::ReflectRef::Struct(default_struct) => {
             if let Some(field) = default_struct.field(field_name) {
                 println!("Field Name: {}, Type: {}", field_name, field_type);
-                actually_get_default_value_for_field(field)
+                actually_get_default_value_for_field(field, field_type)
             } else {
                 panic!("Field not found: {}", field_name);
             }
@@ -147,21 +149,72 @@ fn get_default_value_for_field(
     }
 }
 
-fn actually_get_default_value_for_field(field: &dyn Reflect) -> String {
+fn actually_get_default_value_for_field(field: &dyn Reflect, field_type: &str) -> String {
     println!("Field: {:?}", field);
-    let type_info = field.get_represented_type_info().unwrap();
-    
-    match type_info {
-        bevy::reflect::TypeInfo::Struct(_) => todo!(),
-        bevy::reflect::TypeInfo::TupleStruct(_) => todo!(),
-        bevy::reflect::TypeInfo::Tuple(_) => todo!(),
-        bevy::reflect::TypeInfo::List(_) => todo!(),
-        bevy::reflect::TypeInfo::Array(_) => todo!(),
-        bevy::reflect::TypeInfo::Map(_) => todo!(),
-        bevy::reflect::TypeInfo::Enum(_) => todo!(),
-        bevy::reflect::TypeInfo::Value(value) => {
-            println!("Value: {:?}", value);
-            return "0".to_string();       
-        },
+
+    match field_type {
+        "string" => {
+            let value = field.downcast_ref::<String>().unwrap();
+            format!("\"{}\"", value)
+        }
+        "integer" => {
+            if let Some(value) = field.downcast_ref::<usize>() {
+                return value.to_string();
+            }
+
+            if let Some(value) = field.downcast_ref::<u8>() {
+                return value.to_string();
+            }
+
+            if let Some(value) = field.downcast_ref::<u16>() {
+                return value.to_string();
+            }
+
+            if let Some(value) = field.downcast_ref::<u32>() {
+                return value.to_string();
+            }
+
+            if let Some(value) = field.downcast_ref::<u64>() {
+                return value.to_string();
+            }
+
+            if let Some(value) = field.downcast_ref::<i8>() {
+                return value.to_string();
+            }
+
+            if let Some(value) = field.downcast_ref::<i16>() {
+                return value.to_string();
+            }
+
+            if let Some(value) = field.downcast_ref::<i32>() {
+                return value.to_string();
+            }
+
+            if let Some(value) = field.downcast_ref::<i64>() {
+                return value.to_string();
+            }
+
+            panic!("Field type not supported: {}", field_type);
+        }
+        "float" => {
+            if let Some(value) = field.downcast_ref::<f32>() {
+                return format!("\"{}\"", value);
+            }
+
+            if let Some(value) = field.downcast_ref::<f64>() {
+                return format!("\"{}\"", value);
+            }
+
+            panic!("Field type not supported: {}", field_type);
+        }
+        "boolean" => {
+            let value = field.downcast_ref::<bool>().unwrap();
+
+            match value {
+                true => "yes".to_string(),
+                false => "no".to_string(),
+            }
+        }
+        _ => panic!("Field type not supported: {}", field_type),
     }
 }

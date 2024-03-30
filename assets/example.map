@@ -250,3 +250,10 @@
 "origin" "-60 68 40"
 "shadows_enabled" "0"
 }
+// entity 8
+{
+"classname" "AnotherSolidClass"
+"origin" "-40 -40 8"
+"test_bool" "0"
+"test_f32" "dawdaw"
+}

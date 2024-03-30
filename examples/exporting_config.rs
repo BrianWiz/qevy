@@ -19,7 +19,7 @@ fn main() {
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component, QevyEntityConfig, Default)]
-struct AnotherSolidClass {
+struct APointClass {
     test_string: String,
     test_usize: usize,
     test_bool: bool,
@@ -31,6 +31,20 @@ struct AnotherSolidClass {
     test_u64: u64,
     //test_base_class: ABaseClassInsideClass,
 }
+
+impl QevyEntityConfig for APointClass {
+    fn get_entity_type(&self) -> &QevyEntityType {
+        &QevyEntityType::Point
+    }
+
+    fn get_base_classes(&self) -> Vec<std::any::TypeId> {
+        vec![std::any::TypeId::of::<TestBaseClass>()]
+    }
+}
+
+#[derive(Component, Reflect, Default)]
+#[reflect(Component, QevyEntityConfig, Default)]
+struct AnotherSolidClass;
 
 #[derive(Reflect, Default)]
 struct ABaseClassInsideClass {
@@ -47,20 +61,6 @@ enum EnumTest {
 impl QevyEntityConfig for AnotherSolidClass {
     fn get_entity_type(&self) -> &QevyEntityType {
         &QevyEntityType::Solid
-    }
-
-    fn get_base_classes(&self) -> Vec<std::any::TypeId> {
-        vec![std::any::TypeId::of::<TestBaseClass>()]
-    }
-}
-
-#[derive(Component, Reflect, Default)]
-#[reflect(Component, QevyEntityConfig, Default)]
-struct APointClass;
-
-impl QevyEntityConfig for APointClass {
-    fn get_entity_type(&self) -> &QevyEntityType {
-        &QevyEntityType::Point
     }
 
     fn get_base_classes(&self) -> Vec<std::any::TypeId> {
