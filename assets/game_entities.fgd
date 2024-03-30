@@ -1,0 +1,13 @@
+@BaseClass  = TestBaseClass : "" []
+@SolidClass base(TestBaseClass) = AnotherSolidClass : "" [test_string(string)
+test_usize(integer)
+test_bool(boolean)
+test_f32(float)
+test_f64(float)
+test_i32(integer)
+test_i64(integer)
+test_u32(integer)
+test_u64(integer)
+test_base_class()]
+@SolidClass base() = TestSolidClass : "" []
+@PointClass base(TestBaseClass) = APointClass : "" []
