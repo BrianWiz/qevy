@@ -20,8 +20,8 @@ fn main() {
         .run();
 }
 
-#[derive(Component, Reflect)]
-#[reflect(Component, QevyEntityConfig, Default)]
+#[derive(Reflect)]
+#[reflect(QevyEntityConfig, Default)]
 struct APointClass {
     test_string: String,
     test_usize: usize,
@@ -62,8 +62,8 @@ impl QevyEntityConfig for APointClass {
     }
 }
 
-#[derive(Component, Reflect, Default)]
-#[reflect(Component, QevyEntityConfig, Default)]
+#[derive(Reflect, Default)]
+#[reflect(QevyEntityConfig, Default)]
 struct AnotherSolidClass;
 
 #[derive(Reflect, Default)]
@@ -106,8 +106,8 @@ impl QevyEntityConfig for AnotherSolidClass {
     }
 }
 
-#[derive(Component, Reflect, Default)]
-#[reflect(Component, QevyEntityConfig, Default)]
+#[derive(Reflect, Default)]
+#[reflect(QevyEntityConfig, Default)]
 struct TestSolidClass;
 
 impl QevyEntityConfig for TestSolidClass {
@@ -116,8 +116,8 @@ impl QevyEntityConfig for TestSolidClass {
     }
 }
 
-#[derive(Component, Reflect, Default)]
-#[reflect(Component, QevyEntityConfig, Default)]
+#[derive(Reflect, Default)]
+#[reflect(QevyEntityConfig, Default)]
 struct TestBaseClass;
 
 impl QevyEntityConfig for TestBaseClass {
