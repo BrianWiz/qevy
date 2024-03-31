@@ -32,8 +32,8 @@ impl QevyProperty for bool {
     fn get_fgd_string(&self, field_name: &str) -> String {
         let value = if *self { 1 } else { 0 };
         format!(
-            "\t{}(choices) : \"{}\" : {} =\n\t[\n\t\t0 : \"False\"\n\t\t1 : \"True\"\n\t]",
-            field_name, field_name, value
+            "\t{}(choices) : \"{}\" : {} : \"{}\" =\n\t[\n\t\t0 : \"False\"\n\t\t1 : \"True\"\n\t]",
+            field_name, field_name, value, "Placeholder Description"
         )
     }
 }

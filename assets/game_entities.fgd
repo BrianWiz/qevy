@@ -15,7 +15,7 @@
 @PointClass base(TestBaseClass) = APointClass : "" [
 	test_string(string) : "test_string" : "" : "Placeholder Description"
 	test_usize(integer) : "test_usize" : 0 : "Placeholder Description"
-	test_bool(choices) : "test_bool" : 0 =
+	test_bool(choices) : "test_bool" : 0 : "Placeholder Description" =
 	[
 		0 : "False"
 		1 : "True"
