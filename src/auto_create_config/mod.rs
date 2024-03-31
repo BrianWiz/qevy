@@ -2,7 +2,7 @@ use std::{any::TypeId, path::PathBuf};
 
 use bevy::prelude::*;
 
-use self::export::create_config;
+use self::{export::create_config, register_types::properties::QevyPropertyPlugin};
 mod export;
 pub mod register_types;
 
@@ -52,7 +52,8 @@ impl Plugin for AutoCreateConfigPlugin {
             .init_resource::<QevyRegistry>()
             .register_asset_root()
             .insert_resource(self.settings.clone())
-            .add_systems(Startup, create_config);
+            .add_systems(Startup, create_config)
+            .add_plugins(QevyPropertyPlugin);
     }
 }
 

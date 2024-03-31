@@ -243,6 +243,7 @@
 {
 "classname" "APointClass"
 "origin" "8 -56 8"
+"test_bool" ""
 }
 // entity 7
 {
@@ -256,4 +257,11 @@
 "origin" "-40 -40 8"
 "test_bool" "0"
 "test_f32" "dawdaw"
+}
+// entity 9
+{
+"classname" "APointClass"
+"origin" "56 -168 8"
+"test_enum" "0"
+"test_bool" "1"
 }

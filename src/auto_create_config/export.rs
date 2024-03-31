@@ -21,7 +21,7 @@ pub(crate) fn create_config(world: &mut World) {
 
     // Write world spawn: @SolidClass = worldspawn : "World Entity" []
     writer
-        .write_all(format!("@SolidClass = worldspawn : \"World Entity\" []\n",).as_bytes())
+        .write_all(format!("@SolidClass = worldspawn : \"World Entity\" []\n\n",).as_bytes())
         .expect("could not write to file");
 
     // Base classes

@@ -1,14 +1,35 @@
 @SolidClass = worldspawn : "World Entity" []
-@BaseClass  = TestBaseClass : "" []
-@SolidClass base(TestBaseClass) = AnotherSolidClass : "" []
-@SolidClass base() = TestSolidClass : "" []
+
+@BaseClass  = TestBaseClass : "" [
+
+]
+
+@SolidClass base(TestBaseClass) = AnotherSolidClass : "" [
+
+]
+
+@SolidClass base() = TestSolidClass : "" [
+
+]
+
 @PointClass base(TestBaseClass) = APointClass : "" [
-test_string(string) : "" : ""
-test_usize(integer) : "" : 0
-test_bool(boolean) : "" : no
-test_f32(float) : "" : "0"
-test_f64(float) : "" : "0"
-test_i32(integer) : "" : 0
-test_i64(integer) : "" : 0
-test_u32(integer) : "" : 0
-test_u64(integer) : "" : 0]
+	test_string(string) : "test_string" : "" : "Placeholder Description"
+	test_usize(integer) : "test_usize" : 0 : "Placeholder Description"
+	test_bool(choices) : "test_bool" : 0 =
+	[
+		0 : "False"
+		1 : "True"
+	]
+	test_f32(float) : "test_f32" : "0" : "Placeholder Description"
+	test_f64(float) : "test_f64" : "0" : "Placeholder Description"
+	test_i32(integer) : "test_i32" : 0 : "Placeholder Description"
+	test_i64(integer) : "test_i64" : 0 : "Placeholder Description"
+	test_u32(integer) : "test_u32" : 0 : "Placeholder Description"
+	test_u64(integer) : "test_u64" : 0 : "Placeholder Description"
+	test_enum(flags) =
+	[
+		1 : "Test"
+		2 : "EnumVariantTest"
+	]
+]
+

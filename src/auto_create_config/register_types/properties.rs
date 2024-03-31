@@ -1,10 +1,24 @@
 use bevy::prelude::*;
+use bevy::reflect::Reflect;
 
 pub(crate) struct QevyPropertyPlugin;
 
+// Macro for registering type data for each type implemented QevyProperty
+macro_rules! register_qevy_property_types {
+    ($app:expr, $($t:ty),*) => {
+        $(
+            $app.register_type_data::<$t, ReflectQevyProperty>();
+        )*
+    };
+}
+
 impl Plugin for QevyPropertyPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type_data::<u8, ReflectQevyProperty>();
+        // Register all types that implement QevyProperty here
+        register_qevy_property_types!(
+            app, u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize, f64, f32, String,
+            bool
+        );
     }
 }
 
@@ -13,33 +27,37 @@ pub trait QevyProperty: Reflect {
     fn get_fgd_string(&self, field_name: &str) -> String;
 }
 
+// Implementation for bool as an example
 impl QevyProperty for bool {
     fn get_fgd_string(&self, field_name: &str) -> String {
         let value = if *self { 1 } else { 0 };
         format!(
-            "{}(choices) : \"{}\" : {} = [0 : \"False\" 1 : \"True\"]",
+            "\t{}(choices) : \"{}\" : {} =\n\t[\n\t\t0 : \"False\"\n\t\t1 : \"True\"\n\t]",
             field_name, field_name, value
         )
     }
 }
 
+// Macro to implement QevyProperty for given types
 macro_rules! impl_qevy_property {
     ($label:expr, $quote:expr, $($t:ty),*) => {
         $(
             impl QevyProperty for $t {
                 fn get_fgd_string(&self, field_name: &str) -> String {
-                    if $quote {
-                        format!("{}({}) : \"{}\" : \"{}\" : \"Placeholder Description\"", field_name, field_name, $label, self)
+                    let formatted_value = if $quote {
+                        format!("\"{}\"", self)
                     } else {
-                        format!("{}({}) : \"{}\" : {} : \"Placeholder Description\"", field_name, field_name, $label, self)
-                    }
+                        format!("{}", self)
+                    };
+
+                    format!("\t{}({}) : \"{}\" : {} : \"Placeholder Description\"", field_name, $label, field_name, formatted_value)
                 }
             }
         )*
     };
 }
 
-// Impl the trait for primitive types
+// Implement the trait for primitive types
 impl_qevy_property!(
     "integer", false, u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize
 );
