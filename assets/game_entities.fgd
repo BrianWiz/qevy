@@ -13,15 +13,15 @@
 ]
 
 @PointClass base(TestBaseClass) = APointClass : "" [
-	test_string(string) : "test_string" : "" : "Placeholder Description"
-	test_usize(integer) : "test_usize" : 0 : "Placeholder Description"
-	test_bool(choices) : "test_bool" : 0 : "Placeholder Description" =
+	test_string(string) : "test_string" : "HELLO WORLD!" : "Placeholder Description"
+	test_usize(integer) : "test_usize" : 69 : "Placeholder Description"
+	test_bool(choices) : "test_bool" : 1 : "Placeholder Description" =
 	[
 		0 : "False"
 		1 : "True"
 	]
-	test_f32(float) : "test_f32" : "0" : "Placeholder Description"
-	test_f64(float) : "test_f64" : "0" : "Placeholder Description"
+	test_f32(float) : "test_f32" : "69.42" : "Placeholder Description"
+	test_f64(float) : "test_f64" : "420.69" : "Placeholder Description"
 	test_i32(integer) : "test_i32" : 0 : "Placeholder Description"
 	test_i64(integer) : "test_i64" : 0 : "Placeholder Description"
 	test_u32(integer) : "test_u32" : 0 : "Placeholder Description"

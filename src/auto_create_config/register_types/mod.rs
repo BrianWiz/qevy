@@ -1,8 +1,6 @@
 use std::any::TypeId;
 
-use bevy::reflect::{
-    reflect_trait, std_traits::ReflectDefault, Reflect, TypeRegistration, TypeRegistry,
-};
+use bevy::reflect::{reflect_trait, Reflect, ReflectMut, TypeRegistration, TypeRegistry};
 
 use crate::auto_create_config::register_types::properties::ReflectQevyProperty;
 
@@ -42,7 +40,7 @@ pub trait QevyEntityConfig: Reflect {
         &self,
         my_registration: &TypeRegistration,
         registry: &TypeRegistry,
-        _default_value: &Box<dyn Reflect>,
+        default_value: &mut Box<dyn Reflect>,
     ) -> String {
         let type_info = my_registration.type_info();
         let short_name = type_info.type_path_table().short_path();
@@ -62,11 +60,12 @@ pub trait QevyEntityConfig: Reflect {
                     let name = named_field.name();
                     let field_type_id = named_field.type_id();
                     let field_registry = registry.get(field_type_id).unwrap();
-                    let default_property = field_registry.data::<ReflectDefault>().unwrap();
-                    let field_default_value = default_property.default();
-                    //field_default_value.apply(default_value);
+
+                    let ReflectMut::Struct(mut_value) = default_value.reflect_mut() else {
+                        unreachable!()
+                    };
                     let property = field_registry.data::<ReflectQevyProperty>().unwrap();
-                    let property = property.get(field_default_value.as_reflect()).unwrap();
+                    let property = property.get(mut_value.field(name).unwrap()).unwrap();
                     let property_string = property.get_fgd_string(name);
 
                     types_string.push_str(&property_string);
