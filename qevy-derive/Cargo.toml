@@ -1,0 +1,13 @@
+[package]
+name = "qevy-derive"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+deluxe = "0.5.0"
+proc-macro2 = "1.0.79"
+quote = "1.0.35"
+syn = "2.0.57"
+
+[lib]
+proc-macro = true

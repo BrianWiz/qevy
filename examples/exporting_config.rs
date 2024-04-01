@@ -66,36 +66,6 @@ impl QevyEntityConfig for APointClass {
 #[reflect(QevyEntityConfig, Default)]
 struct AnotherSolidClass;
 
-#[derive(Reflect, Default)]
-#[reflect(QevyProperty, Default)]
-enum EnumTestFlag {
-    #[default]
-    Test,
-    EnumVariantTest,
-}
-
-impl QevyProperty for EnumTestFlag {
-    fn get_fgd_string(&self, field_name: &str) -> String {
-        let mut string = format!("\t{}(flags) =\n\t[\n", field_name);
-        let mut i = 1;
-
-        let type_info = self.get_represented_type_info().unwrap();
-        match type_info {
-            bevy::reflect::TypeInfo::Enum(enum_info) => {
-                let variants = enum_info.variant_names();
-                for variant in variants {
-                    string.push_str(&format!("\t\t{} : \"{}\"\n", i, variant));
-                    i += 1;
-                }
-                string.push_str("\t]");
-            }
-            _ => todo!(),
-        }
-
-        string
-    }
-}
-
 impl QevyEntityConfig for AnotherSolidClass {
     fn get_entity_type(&self) -> &QevyEntityType {
         &QevyEntityType::Solid
@@ -104,6 +74,15 @@ impl QevyEntityConfig for AnotherSolidClass {
     fn get_base_classes(&self) -> Vec<std::any::TypeId> {
         vec![std::any::TypeId::of::<TestBaseClass>()]
     }
+}
+
+#[derive(Reflect, Default, QevyProperty)]
+#[reflect(QevyProperty, Default)]
+#[qevy_property(property_type = "flags")] // TODO: Flags and Choices
+enum EnumTestFlag {
+    #[default]
+    Test,
+    EnumVariantTest,
 }
 
 #[derive(Reflect, Default)]

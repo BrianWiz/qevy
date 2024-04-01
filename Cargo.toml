@@ -1,3 +1,4 @@
+workspace = { members = ["qevy-derive"] }
 [package]
 name = "qevy"
 version = "0.2.0"
@@ -11,6 +12,8 @@ authors = ["Brian Howard <brian.howard@hey.com>"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+qevy-derive = { path = "qevy-derive" }
+
 anyhow = "1.0.75"
 async-lock = "3.0.0"
 bevy = { version = "0.13" }
