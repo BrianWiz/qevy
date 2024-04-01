@@ -46,6 +46,7 @@ fn qevy_property_derive_macro2(
     let ident_name = ident.to_string();
 
     // Extract field attributes
+    // TODO: the order of the fields doesn't seem to be guaranteed...?
     let field_attrs = extract_qevy_property_field_attributes(&mut ast)?;
     let (field_names, field_attrs): (Vec<String>, Vec<QevyPropertyFieldAttributes>) = field_attrs
         .into_iter()
