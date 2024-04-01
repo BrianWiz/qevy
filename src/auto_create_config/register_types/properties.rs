@@ -33,12 +33,14 @@ pub trait QevyProperty: Reflect {
 impl QevyProperty for bool {
     fn get_fgd_string(&self, field_name: &str) -> &'static str {
         let value = if *self { 1 } else { 0 };
-        let string = format!(
+
+        Box::leak(
+            format!(
             "\t{}(choices) : \"{}\" : {} : \"{}\" =\n\t[\n\t\t0 : \"False\"\n\t\t1 : \"True\"\n\t]",
             field_name, field_name, value, "Placeholder Description"
-        );
-        
-        string.as_str()
+        )
+            .into_boxed_str(),
+        )
     }
 }
 
@@ -54,7 +56,10 @@ macro_rules! impl_qevy_property {
                         format!("{}", self)
                     };
 
-                    format!("\t{}({}) : \"{}\" : {} : \"Placeholder Description\"", field_name, $label, field_name, formatted_value).as_str()
+                    Box::leak(
+                        format!("\t{}({}) : \"{}\" : {} : \"Placeholder Description\"", field_name, $label, field_name, formatted_value)
+                            .into_boxed_str()
+                    )
                 }
             }
         )*
