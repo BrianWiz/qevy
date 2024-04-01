@@ -78,10 +78,12 @@ impl QevyEntityConfig for AnotherSolidClass {
 
 #[derive(Reflect, Default, QevyProperty)]
 #[reflect(QevyProperty, Default)]
-#[qevy_property(property_type = "flags")] // TODO: Flags and Choices
+#[qevy_property(property_type = "flags")]
 enum EnumTestFlag {
     #[default]
+    #[qevy_property(selected_by_default = true)]
     Test,
+    #[qevy_property(selected_by_default = false)]
     EnumVariantTest,
 }
 

@@ -1,53 +1,6 @@
 use std::collections::HashMap;
 
-use syn::{DeriveInput, Ident};
-
-fn impl_qevy_property_trait(ast: DeriveInput) -> proc_macro::TokenStream {
-    // get struct identifier
-    let ident: Ident = ast.ident;
-    let ident_str = ident.to_string();
-
-    // Get field identifiers
-    let variant_idents = match ast.data {
-        syn::Data::Struct(_) => panic!("QevyProperty cannot be derived for structs"),
-        syn::Data::Enum(data) => data
-            .variants
-            .into_iter()
-            .map(|variant| variant.ident)
-            .collect::<Vec<Ident>>(),
-        syn::Data::Union(_) => panic!("QevyProperty cannot be derived for unions"),
-    };
-    let variant_idents_str = variant_idents
-        .iter()
-        .map(|ident| ident.to_string())
-        .collect::<Vec<String>>();
-
-    // generate impl
-    quote::quote!(
-        impl QevyProperty for #ident {
-            fn get_fgd_string(&self, field_name: &str) -> String {
-                let mut string = format!("\t{}(flags) =\n\t[\n", field_name);
-                let mut i = 1;
-
-                let type_info = self.get_represented_type_info().unwrap();
-                match type_info {
-                    bevy::reflect::TypeInfo::Enum(enum_info) => {
-                        let variants = enum_info.variant_names();
-                        for variant in variants {
-                            string.push_str(&format!("\t\t{} : \"{}\"\n", i, variant));
-                            i += 1;
-                        }
-                        string.push_str("\t]");
-                    }
-                    _ => todo!(),
-                }
-
-                string
-            }
-        }
-    )
-    .into()
-}
+use syn::DeriveInput;
 
 #[derive(deluxe::ExtractAttributes)]
 #[deluxe(attributes(qevy_property))]
@@ -68,11 +21,11 @@ fn extract_qevy_property_field_attributes(
 ) -> deluxe::Result<HashMap<String, QevyPropertyFieldAttributes>> {
     let mut field_attrs = HashMap::new();
 
-    if let syn::Data::Struct(s) = &mut ast.data {
-        for field in s.fields.iter_mut() {
-            let field_name = field.ident.as_ref().unwrap().to_string();
-            let attrs: QevyPropertyFieldAttributes = deluxe::extract_attributes(field)?;
-            field_attrs.insert(field_name, attrs);
+    if let syn::Data::Enum(e) = &mut ast.data {
+        for variant in e.variants.iter_mut() {
+            let variant_name = variant.ident.to_string();
+            let attrs: QevyPropertyFieldAttributes = deluxe::extract_attributes(variant)?;
+            field_attrs.insert(variant_name, attrs);
         }
     }
 
@@ -95,34 +48,46 @@ fn qevy_property_derive_macro2(
         .map(|(field, attrs)| (field, attrs.selected_by_default))
         .unzip();
 
+    let formatted_field_strings = field_names
+        .iter()
+        .enumerate()
+        .map(|(i, field)| {
+            let selected_by_default = if field_selected_by_defaults[i] {
+                "1"
+            } else {
+                "0"
+            };
+            format!("\t\t{} : \"{}\" : {}\n", i + 1, field, selected_by_default)
+            // i + 1 if you want to start counting from 1
+        })
+        .collect::<Vec<String>>()
+        .join(""); // Join all strings into a single string
+
     // define impl variables
     let ident = &ast.ident;
     let (impl_generics, type_generics, where_clause) = ast.generics.split_for_impl();
 
-    // generate
-    Ok(quote::quote!(
-        impl #impl_generics QevyProperty for #ident #type_generics #where_clause {
-            fn get_fgd_string(&self, field_name: &str) -> &'static str {
-                let mut string = format!("\t{}({}) =\n\t[\n", field_name, #property_type);
-                let mut i = 1;
+    let generated_code = match property_type.as_str() {
+        "flags" => {
+            quote::quote!(
+                impl #impl_generics QevyProperty for #ident #type_generics #where_clause {
+                    fn get_fgd_string(&self, field_name: &str) -> &'static str {
+                        let mut string = format!("\t{}({}) =\n\t[\n", field_name, #property_type);
 
-                let type_info = self.get_represented_type_info().unwrap();
-                match type_info {
-                    bevy::reflect::TypeInfo::Enum(enum_info) => {
-                        let variants = enum_info.variant_names();
-                        for variant in variants {
-                            string.push_str(&format!("\t\t{} : \"{}\"\n", i, variant));
-                            i += 1;
-                        }
+                        string.push_str(#formatted_field_strings);
+
                         string.push_str("\t]");
-                    }
-                    _ => todo!(),
-                }
 
-                Box::leak(string.into_boxed_str())
-            }
+                        Box::leak(string.into_boxed_str())
+                    }
+                }
+            )
         }
-    ))
+        _ => panic!("Unsupported property type: {}", property_type),
+    };
+
+    // generate
+    Ok(generated_code)
 }
 
 #[proc_macro_derive(QevyProperty, attributes(qevy_property))]

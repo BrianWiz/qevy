@@ -28,8 +28,8 @@
 	test_u64(integer) : "test_u64" : 0 : "Placeholder Description"
 	test_enum(flags) =
 	[
-		1 : "Test"
-		2 : "EnumVariantTest"
+		1 : "Test" : 1
+		2 : "EnumVariantTest" : 0
 	]
 ]
 
