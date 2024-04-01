@@ -26,10 +26,16 @@
 	test_i64(integer) : "test_i64" : 0 : "Placeholder Description"
 	test_u32(integer) : "test_u32" : 0 : "Placeholder Description"
 	test_u64(integer) : "test_u64" : 0 : "Placeholder Description"
-	test_enum(flags) =
+	test_flag(flags) =
 	[
-		1 : "Test" : 1
-		2 : "EnumVariantTest" : 0
+		1 : "EnumVariantTest" : 0
+		2 : "Test" : 1
+	]
+	test_choices(choices) : "EnumTestChoices" : 1 =
+	[
+		0 : "AnotherEnumVariant"
+		1 : "Test"
+		"VariantTest!!!!" : "EnumVariantTest"
 	]
 ]
 

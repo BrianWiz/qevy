@@ -17,6 +17,7 @@ fn main() {
         .register_qevy_entity::<APointClass>()
         .register_qevy_entity::<TestBaseClass>()
         .register_type::<EnumTestFlag>()
+        .register_type::<EnumTestChoices>()
         .run();
 }
 
@@ -32,7 +33,8 @@ struct APointClass {
     test_i64: i64,
     test_u32: u32,
     test_u64: u64,
-    test_enum: EnumTestFlag,
+    test_flag: EnumTestFlag,
+    test_choices: EnumTestChoices,
 }
 
 impl Default for APointClass {
@@ -47,7 +49,8 @@ impl Default for APointClass {
             test_i64: Default::default(),
             test_u32: Default::default(),
             test_u64: Default::default(),
-            test_enum: EnumTestFlag::EnumVariantTest,
+            test_flag: EnumTestFlag::EnumVariantTest,
+            test_choices: EnumTestChoices::EnumVariantTest,
         }
     }
 }
@@ -83,8 +86,20 @@ enum EnumTestFlag {
     #[default]
     #[qevy_property(selected_by_default = true)]
     Test,
-    #[qevy_property(selected_by_default = false)]
+    #[qevy_property(selected_by_default = false, key_override = "VariantTest!!!!")]
     EnumVariantTest,
+}
+
+#[derive(Reflect, Default, QevyProperty)]
+#[reflect(QevyProperty, Default)]
+#[qevy_property(property_type = "choices")]
+enum EnumTestChoices {
+    #[default]
+    #[qevy_property(selected_by_default = true)]
+    Test,
+    #[qevy_property(key_override = "VariantTest!!!!")]
+    EnumVariantTest,
+    AnotherEnumVariant,
 }
 
 #[derive(Reflect, Default)]
