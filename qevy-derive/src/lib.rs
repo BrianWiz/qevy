@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use syn::DeriveInput;
 
 #[derive(deluxe::ExtractAttributes)]
@@ -20,18 +18,20 @@ struct QevyPropertyFieldAttributes {
 
 fn extract_qevy_property_field_attributes(
     ast: &mut DeriveInput,
-) -> deluxe::Result<HashMap<String, QevyPropertyFieldAttributes>> {
-    let mut field_attrs = HashMap::new();
+) -> deluxe::Result<(Vec<String>, Vec<QevyPropertyFieldAttributes>)> {
+    let mut field_names = Vec::new();
+    let mut field_attrs = Vec::new();
 
     if let syn::Data::Enum(e) = &mut ast.data {
         for variant in e.variants.iter_mut() {
             let variant_name = variant.ident.to_string();
             let attrs: QevyPropertyFieldAttributes = deluxe::extract_attributes(variant)?;
-            field_attrs.insert(variant_name, attrs);
+            field_names.push(variant_name);
+            field_attrs.push(attrs);
         }
     }
 
-    Ok(field_attrs)
+    Ok((field_names, field_attrs))
 }
 
 fn qevy_property_derive_macro2(
@@ -46,12 +46,8 @@ fn qevy_property_derive_macro2(
     let ident_name = ident.to_string();
 
     // Extract field attributes
-    // TODO: the order of the fields doesn't seem to be guaranteed...?
-    let field_attrs = extract_qevy_property_field_attributes(&mut ast)?;
-    let (field_names, field_attrs): (Vec<String>, Vec<QevyPropertyFieldAttributes>) = field_attrs
-        .into_iter()
-        .map(|(field, attrs)| (field, attrs))
-        .unzip();
+    let (field_names, field_attrs): (Vec<String>, Vec<QevyPropertyFieldAttributes>) =
+        extract_qevy_property_field_attributes(&mut ast)?;
 
     let formatted_field_strings = match property_type.as_str() {
         "flags" => {
@@ -69,11 +65,10 @@ fn qevy_property_derive_macro2(
                             "0"
                         };
                         format!("\t\t{} : \"{}\" : {}\n", i + 1, field, selected_by_default)
-                        // i + 1 if you want to start counting from 1
                     })
                     .collect::<Vec<String>>()
                     .join("")
-                    .as_str(), // Join all strings into a single string
+                    .as_str(),
             );
 
             formatted_field_strings
@@ -118,6 +113,7 @@ fn qevy_property_derive_macro2(
     let ident = &ast.ident;
     let (impl_generics, type_generics, where_clause) = ast.generics.split_for_impl();
 
+    // generate
     let generated_code = quote::quote!(
         impl #impl_generics QevyProperty for #ident #type_generics #where_clause {
             fn get_fgd_string(&self, field_name: &str) -> &'static str {
@@ -132,7 +128,6 @@ fn qevy_property_derive_macro2(
         }
     );
 
-    // generate
     Ok(generated_code)
 }
 

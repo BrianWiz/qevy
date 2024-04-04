@@ -28,14 +28,14 @@
 	test_u64(integer) : "test_u64" : 0 : "Placeholder Description"
 	test_flag(flags) =
 	[
-		1 : "EnumVariantTest" : 0
-		2 : "Test" : 1
+		1 : "Test" : 1
+		2 : "EnumVariantTest" : 0
 	]
-	test_choices(choices) : "EnumTestChoices" : 1 =
+	test_choices(choices) : "EnumTestChoices" : 0 =
 	[
-		0 : "AnotherEnumVariant"
-		1 : "Test"
+		0 : "Test"
 		"VariantTest!!!!" : "EnumVariantTest"
+		2 : "AnotherEnumVariant"
 	]
 ]
 
