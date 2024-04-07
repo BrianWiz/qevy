@@ -4,15 +4,11 @@
 
 ]
 
-@SolidClass base(TestBaseClass) = AnotherSolidClass : "" [
-
-]
-
 @SolidClass base() = TestSolidClass : "" [
 
 ]
 
-@PointClass base() = APointClass : "" [
+@PointClass base() = APointClass : "This is a simple testing class, showcasing the different property types." [
 	test_string(string) : "test_string" : "HELLO WORLD!" : ""
 	test_usize(integer) : "test_usize" : 69 : ""
 	test_bool(choices) : "test_bool" : 1 : "" =

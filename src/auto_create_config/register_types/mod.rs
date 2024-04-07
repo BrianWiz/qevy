@@ -15,7 +15,7 @@ pub trait QevyEntity: Reflect {
     }
 
     fn get_description(&self) -> &str {
-        "" // TODO: Read from doc comments in derive macro
+        ""
     }
 
     fn get_entity_type(&self) -> QevyEntityType; // TODO: Derive

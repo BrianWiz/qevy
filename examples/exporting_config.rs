@@ -14,7 +14,6 @@ fn main() {
             qevy::MapAssetLoaderPlugin::default(),
             qevy::auto_create_config::AutoCreateConfigPlugin::default(),
         ))
-        .register_qevy_entity::<AnotherSolidClass>()
         .register_qevy_entity::<TestSolidClass>()
         .register_qevy_entity::<APointClass>()
         .register_qevy_entity::<TestBaseClass>()
@@ -25,7 +24,10 @@ fn main() {
 
 #[derive(Reflect, QevyEntity)]
 #[reflect(QevyEntity, Default)]
-#[qevy_entity(entity_type = "Point")]
+#[qevy_entity(
+    entity_type = "Point",
+    desc = "This is a simple testing class, showcasing the different property types."
+)]
 struct APointClass {
     test_string: String,
     test_usize: usize,
@@ -55,20 +57,6 @@ impl Default for APointClass {
             test_flag: EnumTestFlag::EnumVariantTest,
             test_choices: EnumTestChoices::EnumVariantTest,
         }
-    }
-}
-
-#[derive(Reflect, Default)]
-#[reflect(QevyEntity, Default)]
-struct AnotherSolidClass;
-
-impl QevyEntity for AnotherSolidClass {
-    fn get_entity_type(&self) -> QevyEntityType {
-        QevyEntityType::from_short_string("Solid").unwrap()
-    }
-
-    fn get_base_classes(&self) -> Vec<std::any::TypeId> {
-        vec![std::any::TypeId::of::<TestBaseClass>()]
     }
 }
 
