@@ -1,4 +1,4 @@
-workspace = { members = ["qevy-derive"] }
+workspace = { members = ["qevy-derive", "qevy-types"] }
 [package]
 name = "qevy"
 version = "0.2.0"
@@ -13,6 +13,7 @@ authors = ["Brian Howard <brian.howard@hey.com>"]
 
 [dependencies]
 qevy-derive = { path = "qevy-derive" }
+qevy-types = { path = "qevy-types" }
 
 anyhow = "1.0.75"
 async-lock = "3.0.0"

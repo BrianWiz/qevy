@@ -2,8 +2,10 @@ use bevy::prelude::*;
 use qevy::auto_create_config::register_types::{
     entities::QevyRegisterSolidClass,
     properties::{QevyProperty, ReflectQevyProperty},
-    QevyEntityConfig, QevyEntityType, ReflectQevyEntityConfig,
+    QevyEntity, ReflectQevyEntity,
 };
+use qevy_derive::QevyEntity;
+use qevy_types::QevyEntityType;
 
 fn main() {
     App::new()
@@ -21,8 +23,9 @@ fn main() {
         .run();
 }
 
-#[derive(Reflect)]
-#[reflect(QevyEntityConfig, Default)]
+#[derive(Reflect, QevyEntity)]
+#[reflect(QevyEntity, Default)]
+#[qevy_entity(entity_type = "Point")]
 struct APointClass {
     test_string: String,
     test_usize: usize,
@@ -55,23 +58,13 @@ impl Default for APointClass {
     }
 }
 
-impl QevyEntityConfig for APointClass {
-    fn get_entity_type(&self) -> &QevyEntityType {
-        &QevyEntityType::Point
-    }
-
-    fn get_base_classes(&self) -> Vec<std::any::TypeId> {
-        vec![std::any::TypeId::of::<TestBaseClass>()]
-    }
-}
-
 #[derive(Reflect, Default)]
-#[reflect(QevyEntityConfig, Default)]
+#[reflect(QevyEntity, Default)]
 struct AnotherSolidClass;
 
-impl QevyEntityConfig for AnotherSolidClass {
-    fn get_entity_type(&self) -> &QevyEntityType {
-        &QevyEntityType::Solid
+impl QevyEntity for AnotherSolidClass {
+    fn get_entity_type(&self) -> QevyEntityType {
+        QevyEntityType::from_short_string("Solid").unwrap()
     }
 
     fn get_base_classes(&self) -> Vec<std::any::TypeId> {
@@ -104,21 +97,21 @@ enum EnumTestChoices {
 }
 
 #[derive(Reflect, Default)]
-#[reflect(QevyEntityConfig, Default)]
+#[reflect(QevyEntity, Default)]
 struct TestSolidClass;
 
-impl QevyEntityConfig for TestSolidClass {
-    fn get_entity_type(&self) -> &QevyEntityType {
-        &QevyEntityType::Solid
+impl QevyEntity for TestSolidClass {
+    fn get_entity_type(&self) -> QevyEntityType {
+        QevyEntityType::Solid
     }
 }
 
 #[derive(Reflect, Default)]
-#[reflect(QevyEntityConfig, Default)]
+#[reflect(QevyEntity, Default)]
 struct TestBaseClass;
 
-impl QevyEntityConfig for TestBaseClass {
-    fn get_entity_type(&self) -> &QevyEntityType {
-        &QevyEntityType::Base
+impl QevyEntity for TestBaseClass {
+    fn get_entity_type(&self) -> QevyEntityType {
+        QevyEntityType::Base
     }
 }

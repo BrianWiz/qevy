@@ -1,31 +1,15 @@
 use std::any::TypeId;
 
 use bevy::reflect::{reflect_trait, Reflect, ReflectMut, TypeRegistration, TypeRegistry};
+use qevy_types::QevyEntityType;
 
 use crate::auto_create_config::register_types::properties::ReflectQevyProperty;
 
 pub mod entities;
 pub mod properties;
 
-#[derive(Debug, PartialEq)]
-pub enum QevyEntityType {
-    Base,
-    Solid,
-    Point,
-}
-
-impl QevyEntityType {
-    pub fn to_fgd_string(&self) -> &str {
-        match self {
-            QevyEntityType::Base => "@BaseClass",
-            QevyEntityType::Solid => "@SolidClass",
-            QevyEntityType::Point => "@PointClass",
-        }
-    }
-}
-
 #[reflect_trait]
-pub trait QevyEntityConfig: Reflect {
+pub trait QevyEntity: Reflect {
     fn get_base_classes(&self) -> Vec<TypeId> {
         vec![] // TODO: fill this with structs that implement QevyEntityConfig:Base
     }
@@ -34,7 +18,7 @@ pub trait QevyEntityConfig: Reflect {
         "" // TODO: Read from doc comments in derive macro
     }
 
-    fn get_entity_type(&self) -> &QevyEntityType; // TODO: Derive
+    fn get_entity_type(&self) -> QevyEntityType; // TODO: Derive
 
     fn get_export_string(
         &self,
@@ -50,7 +34,8 @@ pub trait QevyEntityConfig: Reflect {
             _ => format!("base({})", self.get_base_classes_fgd_string(registry)),
         };
         let description = self.get_description();
-        let entity_type = self.get_entity_type().to_fgd_string();
+        let entity_type = self.get_entity_type();
+        let entity_type = entity_type.to_fgd_string();
 
         let types_string = match type_info {
             bevy::reflect::TypeInfo::Struct(info) => {

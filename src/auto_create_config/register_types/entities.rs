@@ -1,19 +1,20 @@
 use std::any::{Any, TypeId};
 
 use bevy::{prelude::*, reflect::GetTypeRegistration};
+use qevy_types::QevyEntityType;
 
 use crate::auto_create_config::QevyRegistry;
 
-use super::{QevyEntityConfig, QevyEntityType};
+use super::QevyEntity;
 
 pub trait QevyRegisterSolidClass {
-    fn register_qevy_entity<T: QevyEntityConfig + GetTypeRegistration + Any + Default>(
+    fn register_qevy_entity<T: QevyEntity + GetTypeRegistration + Any + Default>(
         &mut self,
     ) -> &mut Self;
 }
 
 impl QevyRegisterSolidClass for App {
-    fn register_qevy_entity<T: QevyEntityConfig + GetTypeRegistration + Any + Default>(
+    fn register_qevy_entity<T: QevyEntity + GetTypeRegistration + Any + Default>(
         &mut self,
     ) -> &mut Self {
         let registry = self.world.resource_mut::<AppTypeRegistry>();

@@ -5,9 +5,9 @@ use bevy::{
     reflect::{TypeRegistration, TypeRegistry},
 };
 
-use super::{
-    register_types::ReflectQevyEntityConfig, AssetRoot, AutoCreateConfigSettings, QevyRegistry,
-};
+use crate::auto_create_config::register_types::ReflectQevyEntity;
+
+use super::{AssetRoot, AutoCreateConfigSettings, QevyRegistry};
 
 pub(crate) fn create_config(world: &mut World) {
     let config = world.resource::<AutoCreateConfigSettings>();
@@ -59,10 +59,11 @@ fn type_reg_to_export_string(type_reg: &TypeRegistration, registry: &TypeRegistr
     if let Some(reflect_default) = type_reg.data::<ReflectDefault>() {
         let default_value: Box<dyn Reflect> = reflect_default.default();
         let mut mut_default_value = reflect_default.default();
-        if let Some(reflect_entity_config) = type_reg.data::<ReflectQevyEntityConfig>() {
+        if let Some(reflect_entity_config) = type_reg.data::<ReflectQevyEntity>() {
             let entity_config = reflect_entity_config.get(&*default_value).unwrap();
 
-            return entity_config.get_export_string(type_reg, registry, &mut mut_default_value) + "\n";
+            return entity_config.get_export_string(type_reg, registry, &mut mut_default_value)
+                + "\n";
         }
 
         panic!("No ReflectQevyEntityConfig for type: {}\nThat could happen because you didn't add \"#[reflect[QevyEntityConfig)]\" to the component!", type_reg.type_info().type_path_table().short_path());
