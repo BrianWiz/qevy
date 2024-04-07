@@ -13,23 +13,24 @@
 ]
 
 @PointClass base(TestBaseClass) = APointClass : "" [
-	test_string(string) : "test_string" : "HELLO WORLD!" : "Placeholder Description"
-	test_usize(integer) : "test_usize" : 69 : "Placeholder Description"
-	test_bool(choices) : "test_bool" : 1 : "Placeholder Description" =
+	test_string(string) : "test_string" : "HELLO WORLD!" : ""
+	test_usize(integer) : "test_usize" : 69 : ""
+	test_bool(choices) : "test_bool" : 1 : "" =
 	[
 		0 : "False"
 		1 : "True"
 	]
-	test_f32(float) : "test_f32" : "69.42" : "Placeholder Description"
-	test_f64(float) : "test_f64" : "420.69" : "Placeholder Description"
-	test_i32(integer) : "test_i32" : 0 : "Placeholder Description"
-	test_i64(integer) : "test_i64" : 0 : "Placeholder Description"
-	test_u32(integer) : "test_u32" : 0 : "Placeholder Description"
-	test_u64(integer) : "test_u64" : 0 : "Placeholder Description"
+	test_f32(float) : "test_f32" : "69.42" : ""
+	test_f64(float) : "test_f64" : "420.69" : ""
+	test_i32(integer) : "test_i32" : 0 : ""
+	test_i64(integer) : "test_i64" : 0 : ""
+	test_u32(integer) : "test_u32" : 0 : ""
+	test_u64(integer) : "test_u64" : 0 : ""
 	test_flag(flags) =
 	[
 		1 : "Test" : 1
 		2 : "EnumVariantTest" : 0
+		4 : "TestTestTest" : 0
 	]
 	test_choices(choices) : "EnumTestChoices" : 0 =
 	[

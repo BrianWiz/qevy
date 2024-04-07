@@ -64,7 +64,12 @@ fn qevy_property_derive_macro2(
                         } else {
                             "0"
                         };
-                        format!("\t\t{} : \"{}\" : {}\n", i + 1, field, selected_by_default)
+                        format!(
+                            "\t\t{} : \"{}\" : {}\n",
+                            2_i32.pow(i as u32),
+                            field,
+                            selected_by_default
+                        )
                     })
                     .collect::<Vec<String>>()
                     .join("")
@@ -116,7 +121,7 @@ fn qevy_property_derive_macro2(
     // generate
     let generated_code = quote::quote!(
         impl #impl_generics QevyProperty for #ident #type_generics #where_clause {
-            fn get_fgd_string(&self, field_name: &str) -> &'static str {
+            fn get_fgd_string(&self, field_name: &str, field_description: &str) -> &'static str {
                 let mut string = format!("\t{}({})", field_name, #property_type);
 
                 string.push_str(#formatted_field_strings);

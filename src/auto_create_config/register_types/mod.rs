@@ -27,14 +27,14 @@ impl QevyEntityType {
 #[reflect_trait]
 pub trait QevyEntityConfig: Reflect {
     fn get_base_classes(&self) -> Vec<TypeId> {
-        vec![]
+        vec![] // TODO: fill this with structs that implement QevyEntityConfig:Base
     }
 
     fn get_description(&self) -> &str {
-        ""
+        "" // TODO: Read from doc comments in derive macro
     }
 
-    fn get_entity_type(&self) -> &QevyEntityType;
+    fn get_entity_type(&self) -> &QevyEntityType; // TODO: Derive
 
     fn get_export_string(
         &self,
@@ -66,7 +66,7 @@ pub trait QevyEntityConfig: Reflect {
                     };
                     let property = field_registry.data::<ReflectQevyProperty>().unwrap();
                     let property = property.get(mut_value.field(name).unwrap()).unwrap();
-                    let property_string = property.get_fgd_string(name);
+                    let property_string = property.get_fgd_string(name, "");
 
                     types_string.push_str(&property_string);
                     types_string.push('\n');

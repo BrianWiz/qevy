@@ -86,8 +86,9 @@ enum EnumTestFlag {
     #[default]
     #[qevy_property(selected_by_default = true)]
     Test,
-    #[qevy_property(selected_by_default = false, key_override = "VariantTest!!!!")]
+    #[qevy_property(selected_by_default = false)]
     EnumVariantTest,
+    TestTestTest,
 }
 
 #[derive(Reflect, Default, QevyProperty)]
