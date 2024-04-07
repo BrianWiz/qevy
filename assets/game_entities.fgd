@@ -32,7 +32,7 @@
 		2 : "EnumVariantTest" : 0
 		4 : "TestTestTest" : 0
 	]
-	test_choices(choices) : "EnumTestChoices" : 0 =
+	test_choices(choices) : "test_choices" : 0 : "" =
 	[
 		0 : "Test"
 		"VariantTest!!!!" : "EnumVariantTest"

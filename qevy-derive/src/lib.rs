@@ -42,8 +42,6 @@ fn qevy_property_derive_macro2(
 
     // Extract struct attributes
     let QevyPropertyStructAttributes { property_type } = deluxe::extract_attributes(&mut ast)?;
-    let ident = &ast.ident;
-    let ident_name = ident.to_string();
 
     // Extract field attributes
     let (field_names, field_attrs): (Vec<String>, Vec<QevyPropertyFieldAttributes>) =
@@ -91,8 +89,7 @@ fn qevy_property_derive_macro2(
             let mut formatted_field_strings = String::new();
             formatted_field_strings.push_str(
                 format!(
-                    " : \"{}\" : {} =\n\t[\n",
-                    ident_name, // TODO: Somehow replace with the field name of the original struct.
+                    " : \":fieldname:\" : {} : \":description:\" =\n\t[\n",
                     selected_key
                 )
                 .as_str(),
@@ -127,6 +124,10 @@ fn qevy_property_derive_macro2(
                 string.push_str(#formatted_field_strings);
 
                 string.push_str("\t]");
+
+                // Replace :fieldname: and :description: with the actual values
+                string = string.replace(":fieldname:", field_name);
+                string = string.replace(":description:", field_description);
 
                 Box::leak(string.into_boxed_str())
             }
