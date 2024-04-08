@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use shambler::{Vector2, Vector3};
 
+use crate::components::MapUnits;
+
 pub const SHAMBLER_UNITS_TO_BEVY_METERS: f32 = 0.03125; // 1 meter = 32 units (1/32)
 
 pub fn to_bevy_indecies(indecies: &Vec<usize>) -> Vec<u32> {
@@ -11,8 +13,11 @@ pub fn to_bevy_indecies(indecies: &Vec<usize>) -> Vec<u32> {
     bevy_indecies
 }
 
-pub fn to_bevy_position(vector: &Vec3) -> Vec3 {
-    Vec3::new(vector.y, vector.z, vector.x) * SHAMBLER_UNITS_TO_BEVY_METERS
+pub fn to_bevy_position(vector: &Vec3, map_units: &MapUnits) -> Vec3 {
+    match map_units {
+        MapUnits::Bevy => Vec3::new(vector.y, vector.z, vector.x) * SHAMBLER_UNITS_TO_BEVY_METERS,
+        MapUnits::Trenchbroom => Vec3::new(vector.y, vector.z, vector.x),
+    }
 }
 
 pub fn to_bevy_rotation(rotation: &Vec3) -> Quat {
@@ -24,10 +29,14 @@ pub fn to_bevy_rotation(rotation: &Vec3) -> Quat {
     ) // * Quat::from_axis_angle(Vec3::Y, -90.0_f32.to_radians())
 }
 
-pub fn to_bevy_vertices(vertices: &Vec<Vector3>) -> Vec<Vec3> {
+pub fn to_bevy_vertices(vertices: &Vec<Vector3>, map_units: &MapUnits) -> Vec<Vec3> {
     let mut bevy_vertices: Vec<Vec3> = Vec::new();
     for vertex in vertices {
-        bevy_vertices.push(Vec3::new(vertex.y, vertex.z, vertex.x) * SHAMBLER_UNITS_TO_BEVY_METERS);
+        match map_units {
+            MapUnits::Bevy => bevy_vertices
+                .push(Vec3::new(vertex.y, vertex.z, vertex.x) * SHAMBLER_UNITS_TO_BEVY_METERS),
+            MapUnits::Trenchbroom => bevy_vertices.push(Vec3::new(vertex.y, vertex.z, vertex.x)),
+        }
     }
     bevy_vertices
 }
