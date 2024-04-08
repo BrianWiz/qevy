@@ -8,6 +8,21 @@ struct QevyEntityStructAttributes {
     entity_type: String,
 }
 
+fn extract_qevy_entity_field_attributes(ast: &mut DeriveInput) -> deluxe::Result<(Vec<String>, Vec<String>)> {
+    let mut field_names = Vec::new();
+    let mut field_comments = Vec::new();
+
+    if let syn::Data::Struct(s) = &mut ast.data {
+        for field in s.fields.iter_mut() {
+            let field_name = field.ident.as_ref().unwrap().to_string();
+            field_names.push(field_name);
+            field_comments.push(get_comments(&field.attrs));
+        }
+    }
+    
+    Ok((field_names, field_comments))
+}
+
 pub(crate) fn qevy_entity_derive_macro2(
     item: proc_macro2::TokenStream,
 ) -> deluxe::Result<proc_macro2::TokenStream> {
@@ -23,8 +38,7 @@ pub(crate) fn qevy_entity_derive_macro2(
     let entity_description = get_comments(&ast.attrs);
 
     // Extract field attributes
-    // TODO: do we need field attributes for entities? if so, what?
-    // Description!! doc comments? yes
+    let (field_names, field_comments): (Vec<String>, Vec<String>) = extract_qevy_entity_field_attributes(&mut ast)?;
 
     // define impl variables
     let ident = &ast.ident;
@@ -68,5 +82,8 @@ fn get_comments(attrs: &[Attribute]) -> String {
     }
 
     // remove white space in the beginning of each line and join them
-    docs.iter().map(|s| s.trim()).collect::<Vec<&str>>().join("\n")
+    docs.iter()
+        .map(|s| s.trim())
+        .collect::<Vec<&str>>()
+        .join("\n")
 }
