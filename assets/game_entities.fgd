@@ -8,8 +8,7 @@
 
 ]
 
-@PointClass base() = APointClass : "This is a simple testing class.
-it showcases the different property types" [
+@PointClass base() = APointClass : "This is a simple testing class, showcasing the different property types." [
 	test_string(string) : "test_string" : "HELLO WORLD!" : ""
 	test_usize(integer) : "test_usize" : 69 : ""
 	test_bool(choices) : "test_bool" : 1 : "" =

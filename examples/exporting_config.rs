@@ -22,12 +22,12 @@ fn main() {
         .run();
 }
 
-/// This is a simple testing class.
-/// it showcases the different property types!
+/// This is a simple testing class, showcasing the different property types.
 #[derive(Reflect, QevyEntity)]
 #[reflect(QevyEntity, Default)]
 #[qevy_entity(entity_type = "Point")]
 struct APointClass {
+    /// odwoidiawdiwj
     test_string: String,
     test_usize: usize,
     test_bool: bool,
