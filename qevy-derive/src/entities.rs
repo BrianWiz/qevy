@@ -74,8 +74,6 @@ pub(crate) fn qevy_entity_derive_macro2(
             }
         })
         .collect::<Vec<String>>();
-    // Join the base classes with a comma
-    let base_classes = base_classes.join(", ");
 
     /* let base_classes =  */
 
@@ -99,11 +97,12 @@ pub(crate) fn qevy_entity_derive_macro2(
                 let field_names: Vec<&str> = vec![#(#field_names),*];
                 let field_comments: Vec<&str> = vec![#(#field_comments),*];
 
-                let base_classes = #base_classes;
-                let base_class_string = if base_classes.is_empty() {
+                let base_classes: Vec<&str> = vec![#(#base_classes),*];
+                let joined_base_classes = base_classes.join(", ");
+                let base_class_string = if joined_base_classes.is_empty() {
                     String::new()
                 } else {
-                    format!("base({})", base_classes)
+                    format!("base({})", joined_base_classes)
                 };
                 let description = #entity_description;
                 let entity_type = #entity_type;
@@ -113,19 +112,26 @@ pub(crate) fn qevy_entity_derive_macro2(
                         let mut types_string = String::new();
 
                         for named_field in info.iter() {
-                            // TODO: ignore base classes! as they don't implement the property trait, and don't need their own field in the fgd string!
+                            // Ignore base classes, as they don't need their own field in the fgd
                             let name = named_field.name();
-                            let index_of_field_name = field_names.iter().position(|s| s == &name).unwrap();
+                            // print name and print base_classes
+                            println!("name: {}", name);
+                            println!("base_classes: {:?}", base_classes);
+                            if base_classes.iter().any(|&base_class| base_class == name) {
+                                continue;
+                            }
+
+                            let index_of_field_name = field_names.iter().position(|s| s == &name).expect(format!("Field name not found: {}", name).as_str());
                             let description = field_comments[index_of_field_name];
 
                             let field_type_id = named_field.type_id();
-                            let field_registry = registry.get(field_type_id).unwrap();
+                            let field_registry = registry.get(field_type_id).expect(format!("Field type not found: {}", name).as_str());
 
                             let ReflectMut::Struct(mut_value) = default_value.reflect_mut() else {
-                                unreachable!()
+                                unreachable!("Default value is not a struct");
                             };
-                            let property = field_registry.data::<ReflectQevyProperty>().unwrap();
-                            let property = property.get(mut_value.field(name).unwrap()).unwrap();
+                            let property = field_registry.data::<ReflectQevyProperty>().expect(format!("Field type does not implement ReflectQevyProperty: {}", name).as_str());
+                            let property = property.get(mut_value.field(name).unwrap()).expect(format!("Field not found: {}", name).as_str());
                             let property_string = property.get_fgd_string(name, description);
 
                             types_string.push_str(&property_string);

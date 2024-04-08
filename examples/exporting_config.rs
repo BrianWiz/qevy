@@ -39,6 +39,7 @@ struct APointClass {
     test_u64: u64,
     test_flag: EnumTestFlag,
     test_choices: EnumTestChoices,
+    // this is a base class, and won't be included in the fgd!
     test_base_class: TestBaseClass,
 }
 
