@@ -1,5 +1,5 @@
 use qevy_types::QevyEntityType;
-use syn::DeriveInput;
+use syn::{Attribute, DeriveInput, Meta, MetaNameValue};
 
 #[derive(deluxe::ExtractAttributes)]
 #[deluxe(attributes(qevy_entity))]
@@ -7,7 +7,7 @@ struct QevyEntityStructAttributes {
     #[deluxe(default = "Point".to_string())]
     entity_type: String,
     #[deluxe(default = "".to_string())]
-    desc: String,
+    desc: String, // -> i'd like to replace this with doc comments!
 }
 
 pub(crate) fn qevy_entity_derive_macro2(
@@ -44,4 +44,16 @@ pub(crate) fn qevy_entity_derive_macro2(
     );
 
     Ok(generated_code)
+}
+
+fn get_comments(attrs: &[Attribute]) -> Option<String> {
+    let mut docs = Vec::new();
+    for attr in attrs {
+        if let Meta::NameValue(MetaNameValue { path, value, .. }) = &attr.meta {
+            if path.is_ident("doc") {
+                return Some(syn::parse_quote!(#value))
+            }
+        }
+    }
+    None
 }

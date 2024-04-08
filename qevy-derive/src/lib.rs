@@ -1,3 +1,5 @@
+use syn::{parse_macro_input, punctuated::Punctuated, Meta};
+
 mod entities;
 mod properties;
 
@@ -9,7 +11,9 @@ pub fn qevy_property_derive_macro(item: proc_macro::TokenStream) -> proc_macro::
 }
 
 #[proc_macro_derive(QevyEntity, attributes(qevy_entity))]
-pub fn qevy_entity_derive_macro(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn qevy_entity_derive_macro(
+    item: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
     entities::qevy_entity_derive_macro2(item.into())
         .unwrap()
         .into()
