@@ -14,62 +14,12 @@ pub trait QevyEntity: Reflect {
         vec![] // TODO: fill this with structs that implement QevyEntityConfig:Base
     }
 
-    fn get_description(&self) -> &str {
-        ""
-    }
-
-    fn get_entity_type(&self) -> QevyEntityType; // TODO: Derive
-
     fn get_export_string(
         &self,
         my_registration: &TypeRegistration,
         registry: &TypeRegistry,
         default_value: &mut Box<dyn Reflect>,
-    ) -> String {
-        let type_info = my_registration.type_info();
-        let short_name = type_info.type_path_table().short_path();
-
-        let base_class_string = match self.get_entity_type() {
-            QevyEntityType::Base => String::new(), // Base classes don't have base classes. I think?
-            _ => format!("base({})", self.get_base_classes_fgd_string(registry)),
-        };
-        let description = self.get_description();
-        let entity_type = self.get_entity_type();
-        let entity_type = entity_type.to_fgd_string();
-
-        let types_string = match type_info {
-            bevy::reflect::TypeInfo::Struct(info) => {
-                let mut types_string = String::new();
-
-                for named_field in info.iter() {
-                    let name = named_field.name();
-                    let field_type_id = named_field.type_id();
-                    let field_registry = registry.get(field_type_id).unwrap();
-
-                    let ReflectMut::Struct(mut_value) = default_value.reflect_mut() else {
-                        unreachable!()
-                    };
-                    let property = field_registry.data::<ReflectQevyProperty>().unwrap();
-                    let property = property.get(mut_value.field(name).unwrap()).unwrap();
-                    let property_string = property.get_fgd_string(name, "");
-
-                    types_string.push_str(&property_string);
-                    types_string.push('\n');
-                }
-
-                // remove the last newline
-                types_string.pop();
-
-                types_string
-            }
-            _ => todo!(),
-        };
-
-        format!(
-            "{} {} = {} : \"{}\" [\n{}\n]\n",
-            entity_type, base_class_string, short_name, description, types_string
-        )
-    }
+    ) -> String;
 
     fn get_base_classes_fgd_string(&self, registry: &TypeRegistry) -> String {
         let base_classes = self.get_base_classes();

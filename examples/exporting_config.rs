@@ -5,7 +5,7 @@ use qevy::auto_create_config::register_types::{
     QevyEntity, ReflectQevyEntity,
 };
 use qevy_derive::QevyEntity;
-use qevy_types::QevyEntityType;
+use bevy::reflect::ReflectMut;
 
 fn main() {
     App::new()
@@ -39,6 +39,7 @@ struct APointClass {
     test_u64: u64,
     test_flag: EnumTestFlag,
     test_choices: EnumTestChoices,
+    test_base_class: TestBaseClass,
 }
 
 impl Default for APointClass {
@@ -55,6 +56,7 @@ impl Default for APointClass {
             test_u64: Default::default(),
             test_flag: EnumTestFlag::EnumVariantTest,
             test_choices: EnumTestChoices::EnumVariantTest,
+            test_base_class: TestBaseClass,
         }
     }
 }
@@ -83,22 +85,12 @@ enum EnumTestChoices {
     AnotherEnumVariant,
 }
 
-#[derive(Reflect, Default)]
+#[derive(Reflect, Default, QevyEntity)]
 #[reflect(QevyEntity, Default)]
+#[qevy_entity(entity_type = "Solid")]
 struct TestSolidClass;
 
-impl QevyEntity for TestSolidClass {
-    fn get_entity_type(&self) -> QevyEntityType {
-        QevyEntityType::Solid
-    }
-}
-
-#[derive(Reflect, Default)]
+#[derive(Reflect, Default, QevyEntity)]
 #[reflect(QevyEntity, Default)]
+#[qevy_entity(entity_type = "Base")]
 struct TestBaseClass;
-
-impl QevyEntity for TestBaseClass {
-    fn get_entity_type(&self) -> QevyEntityType {
-        QevyEntityType::Base
-    }
-}

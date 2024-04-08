@@ -21,16 +21,7 @@ impl QevyRegisterSolidClass for App {
         registry.write().register::<T>();
 
         let mut registry = self.world.resource_mut::<QevyRegistry>();
-
-        let t = T::default();
-        match t.get_entity_type() {
-            QevyEntityType::Base => {
-                registry.base_classes.push(TypeId::of::<T>());
-            }
-            _ => {
-                registry.qevy_entities.push(TypeId::of::<T>());
-            }
-        }
+        registry.qevy_entities.push(TypeId::of::<T>());
 
         self
     }
