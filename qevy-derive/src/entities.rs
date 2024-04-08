@@ -6,8 +6,6 @@ use syn::{Attribute, DeriveInput, Meta, MetaNameValue};
 struct QevyEntityStructAttributes {
     #[deluxe(default = "Point".to_string())]
     entity_type: String,
-    #[deluxe(default = "".to_string())]
-    desc: String, // -> i'd like to replace this with doc comments!
 }
 
 pub(crate) fn qevy_entity_derive_macro2(
@@ -17,10 +15,12 @@ pub(crate) fn qevy_entity_derive_macro2(
     let mut ast: DeriveInput = syn::parse2(item)?;
 
     // Extract struct attributes
-    let QevyEntityStructAttributes { entity_type, desc } = deluxe::extract_attributes(&mut ast)?;
+    let QevyEntityStructAttributes { entity_type } = deluxe::extract_attributes(&mut ast)?;
     // only exists to check if the entity type is valid
     let _ = QevyEntityType::from_short_string(entity_type.as_str())
         .expect(format!("Invalid entity type: {}", entity_type).as_str());
+
+    let entity_description = get_comments(&ast.attrs);
 
     // Extract field attributes
     // TODO: do we need field attributes for entities? if so, what?
@@ -34,7 +34,7 @@ pub(crate) fn qevy_entity_derive_macro2(
     let generated_code = quote::quote!(
         impl #impl_generics QevyEntity for #ident #type_generics #where_clause {
             fn get_description(&self) -> &str {
-                #desc
+                #entity_description
             }
 
             fn get_entity_type(&self) -> QevyEntityType {
@@ -46,14 +46,27 @@ pub(crate) fn qevy_entity_derive_macro2(
     Ok(generated_code)
 }
 
-fn get_comments(attrs: &[Attribute]) -> Option<String> {
+fn get_comments(attrs: &[Attribute]) -> String {
     let mut docs = Vec::new();
     for attr in attrs {
         if let Meta::NameValue(MetaNameValue { path, value, .. }) = &attr.meta {
             if path.is_ident("doc") {
-                return Some(syn::parse_quote!(#value))
+                match value {
+                    syn::Expr::Lit(lit) => {
+                        if let syn::Lit::Str(lit_str) = &lit.lit {
+                            docs.push(lit_str.value());
+                        }
+                    }
+                    _ => {}
+                }
             }
         }
     }
-    None
+
+    if docs.is_empty() {
+        return String::new();
+    }
+
+    // remove white space in the beginning of each line and join them
+    docs.iter().map(|s| s.trim()).collect::<Vec<&str>>().join("\n")
 }
