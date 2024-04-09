@@ -14,7 +14,7 @@ fn main() {
             qevy::MapAssetLoaderPlugin::default(),
             qevy::auto_create_config::AutoCreateConfigPlugin::default(),
         ))
-        .register_qevy_entity::<worldspawn>()
+        .register_qevy_entity::<Worldspawn>()
         .register_qevy_entity::<TestBaseClass>()
         .register_qevy_entity::<TestSolidClass>()
         .register_qevy_entity::<APointClass>()
@@ -26,8 +26,8 @@ fn main() {
 /// World Entity
 #[derive(Reflect, QevyEntity, Default)]
 #[reflect(QevyEntity, Default)]
-#[qevy_entity(entity_type = "Solid")]
-struct worldspawn;
+#[qevy_entity(entity_type = "Solid", entity_name = "worldspawn")]
+struct Worldspawn;
 
 /// This is a simple testing class, showcasing the different property types.
 #[derive(Reflect, QevyEntity)]

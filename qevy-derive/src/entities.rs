@@ -6,6 +6,8 @@ use syn::{Attribute, DeriveInput, Meta, MetaNameValue};
 struct QevyEntityStructAttributes {
     #[deluxe(default = "Point".to_string())]
     entity_type: String,
+    #[deluxe(default = None)]
+    entity_name: Option<String>,
 }
 
 #[derive(deluxe::ExtractAttributes)]
@@ -44,7 +46,7 @@ pub(crate) fn qevy_entity_derive_macro2(
     let mut ast: DeriveInput = syn::parse2(item)?;
 
     // Extract struct attributes
-    let QevyEntityStructAttributes { entity_type } = deluxe::extract_attributes(&mut ast)?;
+    let QevyEntityStructAttributes { entity_type, entity_name } = deluxe::extract_attributes(&mut ast)?;
     // only exists to check if the entity type is valid
     let entity_type = QevyEntityType::from_short_string(entity_type.as_str())
         .expect(format!("Invalid entity type: {}", entity_type).as_str());
@@ -77,7 +79,8 @@ pub(crate) fn qevy_entity_derive_macro2(
 
     // define impl variables
     let ident = &ast.ident;
-    let struct_name = ident.to_string();
+    // if the entity_name is not set, use the struct name
+    let struct_name = entity_name.unwrap_or_else(|| ident.to_string());
     let (impl_generics, type_generics, where_clause) = ast.generics.split_for_impl();
 
     // Generate code
