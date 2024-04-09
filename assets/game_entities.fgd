@@ -1,16 +1,21 @@
-@SolidClass  = worldspawn : "World Entity" [
+@SolidClass   = worldspawn : "World Entity" [
 
 ]
 
-@BaseClass  = TestBaseClass : "" [
+@BaseClass   = TestBaseClass : "" [
 
 ]
 
-@SolidClass  = TestSolidClass : "" [
+@SolidClass   = TestSolidClass : "" [
 
 ]
 
-@PointClass base(test_base_class) = APointClass : "This is a simple testing class, showcasing the different property types." [
+@PointClass base(test_base_class) model({
+	"path" : "test",
+	"frame" : 0,
+	"skin" : 0,
+	"scale" : 32
+}) = APointClass : "This is a simple testing class, showcasing the different property types." [
 	test_string(string) : "test_string" : "HELLO WORLD!" : "This is a String property!"
 	test_usize(integer) : "test_usize" : 69 : "This is a usize property!"
 	test_bool(choices) : "test_bool" : 1 : "This is a bool property!" =
@@ -30,7 +35,7 @@
 		2 : "EnumVariantTest" : 0
 		4 : "TestTestTest" : 0
 	]
-	test_choices(choices) : "test_choices" : 0 : "" =
+	test_choices(choices) : "test_choices" : 0 : "This is a choices property!" =
 	[
 		0 : "Test"
 		"VariantTest!!!!" : "EnumVariantTest"

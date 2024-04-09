@@ -8,6 +8,9 @@ struct QevyEntityStructAttributes {
     entity_type: String,
     #[deluxe(default = None)]
     entity_name: Option<String>,
+    #[deluxe(default = (None, None, None, None))]
+    // (path, frame, skin, scale)
+    model: (Option<String>, Option<u32>, Option<u32>, Option<u32>),
 }
 
 #[derive(deluxe::ExtractAttributes)]
@@ -46,8 +49,27 @@ pub(crate) fn qevy_entity_derive_macro2(
     let mut ast: DeriveInput = syn::parse2(item)?;
 
     // Extract struct attributes
-    let QevyEntityStructAttributes { entity_type, entity_name } = deluxe::extract_attributes(&mut ast)?;
-    // only exists to check if the entity type is valid
+    let QevyEntityStructAttributes {
+        entity_type,
+        entity_name,
+        model,
+    } = deluxe::extract_attributes(&mut ast)?;
+    let (model_path, model_frame, model_skin, model_scale) = (
+        model.0,
+        model.1.unwrap_or_default(), // defaults to 0
+        model.2.unwrap_or_default(), // defaults to 0
+        model.3.unwrap_or(32),       // defaults to 32
+    );
+
+    let model_string = model_path
+        .map(|path| {
+            format!(
+                "model({{\n\t\"path\" : \"{}\",\n\t\"frame\" : {},\n\t\"skin\" : {},\n\t\"scale\" : {}\n}})",
+                path, model_frame, model_skin, model_scale
+            )
+        })
+        .unwrap_or_else(|| String::new());
+
     let entity_type = QevyEntityType::from_short_string(entity_type.as_str())
         .expect(format!("Invalid entity type: {}", entity_type).as_str());
 
@@ -98,6 +120,8 @@ pub(crate) fn qevy_entity_derive_macro2(
                 let field_names: Vec<&str> = vec![#(#field_names),*];
                 let field_comments: Vec<&str> = vec![#(#field_comments),*];
 
+                let model_string: &str = #model_string;
+
                 let base_classes: Vec<&str> = vec![#(#base_classes),*];
                 let joined_base_classes = base_classes.join(", ");
                 let base_class_string = if joined_base_classes.is_empty() {
@@ -146,8 +170,8 @@ pub(crate) fn qevy_entity_derive_macro2(
                 };
 
                 format!(
-                    "{} {} = {} : \"{}\" [\n{}\n]\n",
-                    entity_type, base_class_string, short_name, description, types_string
+                    "{} {} {} = {} : \"{}\" [\n{}\n]\n",
+                    entity_type, base_class_string, model_string, short_name, description, types_string
                 )
             }
         }

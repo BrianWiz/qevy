@@ -32,7 +32,7 @@ struct Worldspawn;
 /// This is a simple testing class, showcasing the different property types.
 #[derive(Reflect, QevyEntity)]
 #[reflect(QevyEntity, Default)]
-#[qevy_entity(entity_type = "Point")]
+#[qevy_entity(entity_type = "Point", model = (Some("test"), None, None, None))]
 struct APointClass {
     /// This is a String property!
     test_string: String,
@@ -47,9 +47,11 @@ struct APointClass {
     test_i64: i64,
     test_u32: u32,
     test_u64: u64,
+    /// This is a flag property!
     test_flag: EnumTestFlag,
+    /// This is a choices property!
     test_choices: EnumTestChoices,
-    // this is a base class, and won't be included in the fgd!
+    /// this is a base class, and won't be included in the fgd!
     #[qevy_entity(is_base_class = true)]
     test_base_class: TestBaseClass,
 }
