@@ -19,27 +19,7 @@ pub(crate) fn create_config(world: &mut World) {
     let registry_save_path = Path::join(&asset_root.0, &config.save_path);
     let mut writer = File::create(registry_save_path).expect("could not create file");
 
-    // Write world spawn: @SolidClass = worldspawn : "World Entity" []
-    writer
-        .write_all(format!("@SolidClass = worldspawn : \"World Entity\" []\n\n",).as_bytes())
-        .expect("could not write to file");
-
-    // Base classes
-    let qevy_base_classes_registrations: Vec<_> = qevy_registry
-        .base_classes
-        .iter()
-        .filter_map(|base_class_type| types.get(*base_class_type))
-        .collect();
-
-    for qevy_base_class_reg in qevy_base_classes_registrations {
-        let config_string = type_reg_to_export_string(qevy_base_class_reg, &*types);
-
-        writer
-            .write_all(config_string.as_bytes())
-            .expect("could not write to file");
-    }
-
-    // Solid and Point classes
+    // Write all entities
     let qevy_entities_registrations: Vec<_> = qevy_registry
         .qevy_entities
         .iter()

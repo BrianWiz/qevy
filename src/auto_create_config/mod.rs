@@ -9,7 +9,6 @@ pub mod register_types;
 #[derive(Resource, Clone, Default)]
 pub(crate) struct QevyRegistry {
     pub(crate) qevy_entities: Vec<TypeId>,
-    pub(crate) base_classes: Vec<TypeId>,
 }
 
 #[derive(Resource, Reflect, Clone)]

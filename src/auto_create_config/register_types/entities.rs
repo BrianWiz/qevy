@@ -1,7 +1,6 @@
 use std::any::{Any, TypeId};
 
 use bevy::{prelude::*, reflect::GetTypeRegistration};
-use qevy_types::QevyEntityType;
 
 use crate::auto_create_config::QevyRegistry;
 

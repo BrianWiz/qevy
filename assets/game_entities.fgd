@@ -1,4 +1,10 @@
-@SolidClass = worldspawn : "World Entity" []
+@SolidClass  = worldspawn : "World Entity" [
+
+]
+
+@BaseClass  = TestBaseClass : "" [
+
+]
 
 @SolidClass  = TestSolidClass : "" [
 
@@ -30,9 +36,5 @@
 		"VariantTest!!!!" : "EnumVariantTest"
 		2 : "AnotherEnumVariant"
 	]
-]
-
-@BaseClass  = TestBaseClass : "" [
-
 ]
 
