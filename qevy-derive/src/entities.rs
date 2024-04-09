@@ -8,35 +8,33 @@ struct QevyEntityStructAttributes {
     entity_type: String,
 }
 
+#[derive(deluxe::ExtractAttributes)]
+#[deluxe(attributes(qevy_entity))]
+struct QevyEntityFieldAttributes {
+    #[deluxe(default = false)]
+    is_base_class: bool,
+}
+
 fn extract_qevy_entity_field_comments(
     ast: &mut DeriveInput,
 ) -> deluxe::Result<(Vec<String>, Vec<(String, bool)>)> {
     let mut field_names = Vec::new();
-    let mut field_comments = Vec::new();
+    let mut field_attributes = Vec::new();
 
     if let syn::Data::Struct(s) = &mut ast.data {
         for field in s.fields.iter_mut() {
             let field_name = field.ident.as_ref().unwrap().to_string();
             field_names.push(field_name);
-            field_comments.push((get_comments(&field.attrs), is_a_base_class(&field.attrs)));
+
+            let attrs: QevyEntityFieldAttributes = deluxe::extract_attributes(field)?;
+
+            field_attributes.push((get_comments(&field.attrs), attrs.is_base_class));
         }
     } else {
         panic!("Only structs are supported for QevyEntity derive macro");
     }
 
-    Ok((field_names, field_comments))
-}
-
-fn is_a_base_class(attrs: &[Attribute]) -> bool {
-    for attr in attrs {
-        if let Meta::NameValue(MetaNameValue { path, .. }) = &attr.meta {
-            if path.is_ident("QevyEntity") {
-                return true;
-            }
-        }
-    }
-
-    false
+    Ok((field_names, field_attributes))
 }
 
 pub(crate) fn qevy_entity_derive_macro2(

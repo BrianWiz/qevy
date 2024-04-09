@@ -1,11 +1,11 @@
 use bevy::prelude::*;
+use bevy::reflect::ReflectMut;
 use qevy::auto_create_config::register_types::{
     entities::QevyRegisterSolidClass,
     properties::{QevyProperty, ReflectQevyProperty},
     QevyEntity, ReflectQevyEntity,
 };
 use qevy_derive::QevyEntity;
-use bevy::reflect::ReflectMut;
 
 fn main() {
     App::new()
@@ -27,10 +27,13 @@ fn main() {
 #[reflect(QevyEntity, Default)]
 #[qevy_entity(entity_type = "Point")]
 struct APointClass {
-    /// odwoidiawdiwj
+    /// This is a String property!
     test_string: String,
+    /// This is a usize property!
     test_usize: usize,
+    /// This is a bool property!
     test_bool: bool,
+    /// This is a f32 property!
     test_f32: f32,
     test_f64: f64,
     test_i32: i32,
@@ -40,6 +43,7 @@ struct APointClass {
     test_flag: EnumTestFlag,
     test_choices: EnumTestChoices,
     // this is a base class, and won't be included in the fgd!
+    #[qevy_entity(is_base_class = true)]
     test_base_class: TestBaseClass,
 }
 
