@@ -110,11 +110,9 @@ pub(crate) fn qevy_entity_derive_macro2(
                         let mut types_string = String::new();
 
                         for named_field in info.iter() {
-                            // Ignore base classes, as they don't need their own field in the fgd
                             let name = named_field.name();
-                            // print name and print base_classes
-                            println!("name: {}", name);
-                            println!("base_classes: {:?}", base_classes);
+
+                            // Ignore base classes, as they don't need their own field in the fgd
                             if base_classes.iter().any(|&base_class| base_class == name) {
                                 continue;
                             }
