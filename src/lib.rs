@@ -1,14 +1,14 @@
 use bevy::asset::io::Reader;
-use bevy::asset::AsyncReadExt;
 use bevy::asset::{AssetLoader, BoxedFuture, Handle, LoadContext};
 use bevy::ecs::system::SystemId;
 use bevy::prelude::*;
 use bevy::reflect::TypePath;
+use components::MapUnits;
 use std::collections::BTreeMap;
 use thiserror::Error;
 use tracing::info;
 
-mod build;
+pub mod build;
 pub mod components;
 pub mod conversions;
 pub mod gameplay_systems;
@@ -84,25 +84,21 @@ impl AssetLoader for HeadlessMapAssetLoader {
 pub struct PostBuildMapEvent {
     pub map: Entity,
 }
-
-#[derive(Default, Resource)]
-pub struct PostMapBuildHook {
-    pub system: Option<SystemId>,
-}
-
 #[derive(Default)]
 pub struct MapAssetLoaderPlugin {
     /// If true, the plugin will not add meshes, only colliders
     pub headless: bool,
+    pub units: MapUnits,
 }
 
 impl Plugin for MapAssetLoaderPlugin {
     fn build(&self, app: &mut App) {
         app.init_asset::<MapAsset>()
-            .init_resource::<PostMapBuildHook>()
             .add_event::<components::TriggeredEvent>()
             .add_event::<PostBuildMapEvent>()
             .add_event::<build::SpawnMeshEvent>();
+
+        app.insert_resource(self.units.clone());
 
         if self.headless {
             info!("Using headless map loader. Only colliders will be added.");

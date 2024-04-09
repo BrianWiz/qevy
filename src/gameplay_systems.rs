@@ -10,7 +10,7 @@ pub fn rapier_trigger_system(
     mut commands: Commands,
     trigger_once: Query<(Entity, &TriggerOnce), Without<TriggeredOnce>>,
     trigger_multiple: Query<(Entity, &TriggerMultiple)>,
-    trigger_instigators: Query<Entity, With<TriggerInstigator>>,
+    trigger_instigators: Query<Entity, (With<TriggerInstigator>,)>,
     mut trigger_events: EventWriter<TriggeredEvent>,
 ) {
     for instigator_entity in trigger_instigators.iter() {

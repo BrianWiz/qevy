@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, time::Duration};
 
 #[derive(Default, Component)]
 pub struct Map {
@@ -23,11 +23,11 @@ pub struct MapEntityProperties {
 impl MapEntityProperties {
     // FGD format: https://developer.valvesoftware.com/wiki/FGD
 
-    pub fn get_property_as_string(&self, key: &str, default: &String) -> String {
+    pub fn get_property_as_string(&self, key: &str, default: Option<&String>) -> Option<String> {
         if let Some(value) = self.properties.get(key) {
-            return value.clone();
+            return Some(value.clone());
         }
-        default.clone()
+        default.cloned()
     }
 
     pub fn get_property_as_f32(&self, key: &str, default: f32) -> f32 {
@@ -129,26 +129,54 @@ pub struct TriggerInstigator;
 
 #[derive(Default, Component)]
 pub struct Mover {
-    pub speed: f32,
-    pub destination_translation: Vec3,
-    pub start_translation: Vec3,
+    pub state: MoverState,
+    /// time it takes to move from start to destination and vice versa
+    pub moving_time: Duration,
+    /// time it takes to stay at the destination
+    pub destination_time: Duration,
+    /// the offset from the start position
+    pub destination_offset: Vec3,
 }
 
-#[derive(Component)]
+#[derive(Default)]
+pub enum MoverState {
+    #[default]
+    AtStart,
+    MovingToDestination(Timer),
+    AtDestination(Timer),
+    MovingToStart(Timer),
+}
+
+impl MoverState {
+    pub fn get_fraction(&self) -> f32 {
+        match self {
+            Self::AtStart => 0.0,
+            Self::MovingToDestination(timer) => timer.fraction().min(1.0).max(0.0),
+            Self::MovingToStart(timer) => timer.fraction().min(1.0).max(0.0),
+            Self::AtDestination(timer) => timer.fraction().min(1.0).max(0.0),
+        }
+    }
+}
+
+#[derive(Component, Default)]
 pub struct Door {
-    pub open_time: std::time::Duration,
-    pub triggered_time: Option<std::time::Instant>,
+    /// the key required to open the door
     pub key: Option<String>,
+    /// whether the door should open only once and stay open
     pub open_once: bool,
 }
 
-impl Default for Door {
+/// The units used in the map
+/// Bevy units are the default units used in Bevy, which are 1 unit = 1 meter
+/// Trenchbroom units are the units used in Trenchbroom, which are 16 units = 1 foot
+#[derive(Resource, Clone)]
+pub enum MapUnits {
+    Bevy,
+    Trenchbroom,
+}
+
+impl Default for MapUnits {
     fn default() -> Self {
-        Self {
-            open_time: std::time::Duration::from_secs(1),
-            triggered_time: None,
-            key: None,
-            open_once: false,
-        }
+        Self::Bevy
     }
 }

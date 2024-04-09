@@ -2,7 +2,10 @@ use bevy::prelude::*;
 use bevy::render::mesh::Indices;
 use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::render_resource::PrimitiveTopology;
+#[cfg(feature = "rapier")]
+use bevy_rapier3d::geometry::ActiveCollisionTypes;
 use std::collections::BTreeMap;
+use std::time::Duration;
 
 use crate::components::*;
 use crate::conversions::*;
@@ -13,10 +16,12 @@ use crate::{MapAsset, PostBuildMapEvent};
 pub struct SpawnMeshEvent {
     map: Entity,
     mesh: Mesh,
+    collider: Option<Entity>,
     material: Handle<StandardMaterial>,
 }
 
 pub fn build_map(
+    map_units: &MapUnits,
     map_entity: Entity,
     map_asset: &mut MapAsset,
     commands: &mut Commands,
@@ -79,11 +84,14 @@ pub fn build_map(
 
             let translation = translation.split(" ").collect::<Vec<&str>>();
             let translation = if translation.len() == 3 {
-                to_bevy_position(&Vec3::new(
-                    translation[0].parse::<f32>().unwrap(),
-                    translation[1].parse::<f32>().unwrap(),
-                    translation[2].parse::<f32>().unwrap(),
-                ))
+                to_bevy_position(
+                    &Vec3::new(
+                        translation[0].parse::<f32>().unwrap(),
+                        translation[1].parse::<f32>().unwrap(),
+                        translation[2].parse::<f32>().unwrap(),
+                    ),
+                    &map_units,
+                )
             } else {
                 Vec3::ZERO
             };
@@ -154,18 +162,21 @@ pub fn build_map(
                     let brush_faces = geomap.brush_faces.get(brush_id).unwrap();
                     let mut brush_vertices: Vec<Vec3> = Vec::new();
 
+                    let mut meshes_to_spawn = Vec::new();
+
                     for face_id in brush_faces.iter() {
                         let texture_id = geomap.face_textures.get(face_id).unwrap();
                         let texture_name = geomap.textures.get(texture_id).unwrap();
 
                         let indices =
                             to_bevy_indecies(&face_triangle_indices.get(&face_id).unwrap());
-                        let vertices = to_bevy_vertices(&face_vertices.get(&face_id).unwrap());
+                        let vertices =
+                            to_bevy_vertices(&face_vertices.get(&face_id).unwrap(), &map_units);
                         let normals = to_bevy_vec3s(&face_normals.get(&face_id).unwrap());
                         let uvs = uvs_to_bevy_vec2s(&face_uvs.get(&face_id).unwrap());
                         brush_vertices.extend(vertices.clone());
 
-                        // we don't render anything for these two textures
+                        // we don't render anything for these textures
                         if texture_name == "trigger"
                             || texture_name == "clip"
                             || texture_name == "common/trigger"
@@ -189,17 +200,7 @@ pub fn build_map(
                             }
                         }
 
-                        if map_asset.material_handles.contains_key(texture_name) {
-                            spawn_mesh_event.send(SpawnMeshEvent {
-                                map: map_entity,
-                                mesh: mesh,
-                                material: map_asset
-                                    .material_handles
-                                    .get(texture_name)
-                                    .unwrap()
-                                    .clone(),
-                            });
-                        }
+                        meshes_to_spawn.push((mesh, texture_name));
                     }
 
                     // spawn it's collider
@@ -229,6 +230,21 @@ pub fn build_map(
                             } else {
                                 collider.insert((bevy_xpbd_3d::prelude::RigidBody::Static,));
                             }
+
+                            for (mesh, texture_name) in meshes_to_spawn {
+                                if map_asset.material_handles.contains_key(texture_name) {
+                                    spawn_mesh_event.send(SpawnMeshEvent {
+                                        map: map_entity,
+                                        mesh: mesh,
+                                        collider: Some(collider.id()),
+                                        material: map_asset
+                                            .material_handles
+                                            .get(texture_name)
+                                            .unwrap()
+                                            .clone(),
+                                    });
+                                }
+                            }
                         }
                     }
 
@@ -245,19 +261,38 @@ pub fn build_map(
                                     TriggerMultiple {
                                         target: props.get("target").unwrap().to_string(),
                                     },
-                                    bevy_rapier3d::prelude::RigidBody::Dynamic,
+                                    bevy_rapier3d::prelude::RigidBody::KinematicPositionBased,
                                     bevy_rapier3d::prelude::Sensor,
+                                    ActiveCollisionTypes::default()
+                                        | ActiveCollisionTypes::KINEMATIC_KINEMATIC,
                                 ));
                             } else if classname == "trigger_once" {
                                 collider.insert((
                                     TriggerOnce {
                                         target: props.get("target").unwrap().to_string(),
                                     },
-                                    bevy_rapier3d::prelude::RigidBody::Dynamic,
+                                    bevy_rapier3d::prelude::RigidBody::KinematicPositionBased,
                                     bevy_rapier3d::prelude::Sensor,
+                                    ActiveCollisionTypes::default()
+                                        | ActiveCollisionTypes::KINEMATIC_KINEMATIC,
                                 ));
                             } else {
                                 collider.insert((bevy_rapier3d::prelude::RigidBody::Fixed,));
+                            }
+
+                            for (mesh, texture_name) in meshes_to_spawn {
+                                if map_asset.material_handles.contains_key(texture_name) {
+                                    spawn_mesh_event.send(SpawnMeshEvent {
+                                        map: map_entity,
+                                        mesh: mesh,
+                                        collider: Some(collider.id()),
+                                        material: map_asset
+                                            .material_handles
+                                            .get(texture_name)
+                                            .unwrap()
+                                            .clone(),
+                                    });
+                                }
                             }
                         }
                     }
@@ -281,12 +316,105 @@ pub fn mesh_spawn_system(
     mut spawn_mesh_event: EventReader<SpawnMeshEvent>,
 ) {
     for ev in spawn_mesh_event.read() {
-        commands.entity(ev.map).with_children(|children| {
-            children.spawn(PbrBundle {
-                mesh: meshes.add(ev.mesh.to_owned()),
-                material: ev.material.to_owned(),
-                ..default()
+        // if this mesh has a collider, make it a child of the collider
+        if let Some(collider) = ev.collider {
+            commands.entity(collider).with_children(|children| {
+                children.spawn(PbrBundle {
+                    mesh: meshes.add(ev.mesh.to_owned()),
+                    material: ev.material.to_owned(),
+                    ..default()
+                });
             });
-        });
+        // otherwise, it's a child of the map
+        } else {
+            commands.entity(ev.map).with_children(|children| {
+                children.spawn(PbrBundle {
+                    mesh: meshes.add(ev.mesh.to_owned()),
+                    material: ev.material.to_owned(),
+                    ..default()
+                });
+            });
+        }
+    }
+}
+
+pub fn post_build_map_system(
+    map_units: Res<MapUnits>,
+    mut commands: Commands,
+    mut event_reader: EventReader<crate::PostBuildMapEvent>,
+    mut map_entities: Query<(Entity, &crate::components::MapEntityProperties)>,
+) {
+    for _ in event_reader.read() {
+        // to set these up, see the .fgd file in the TrenchBroom
+        // game folder for Qevy Example also see the readme
+        for (entity, props) in map_entities.iter_mut() {
+            match props.classname.as_str() {
+                "light" => {
+                    commands.entity(entity).insert(PointLightBundle {
+                        transform: props.transform,
+                        point_light: PointLight {
+                            color: props.get_property_as_color("color", Color::WHITE),
+                            radius: props.get_property_as_f32("radius", 0.0),
+                            range: props.get_property_as_f32("range", 10.0),
+                            intensity: props.get_property_as_f32("intensity", 800.0),
+                            shadows_enabled: props.get_property_as_bool("shadows_enabled", false),
+                            ..default()
+                        },
+                        ..default()
+                    });
+                }
+                "directional_light" => {
+                    commands.entity(entity).insert(DirectionalLightBundle {
+                        transform: props.transform,
+                        directional_light: DirectionalLight {
+                            color: props.get_property_as_color("color", Color::WHITE),
+                            illuminance: props.get_property_as_f32("illuminance", 10000.0),
+                            shadows_enabled: props.get_property_as_bool("shadows_enabled", false),
+                            ..default()
+                        },
+                        ..default()
+                    });
+                }
+                "mover" => {
+                    let mut mover_entity = commands.entity(entity);
+                    mover_entity.insert((
+                        Mover {
+                            moving_time: Duration::from_secs_f32(
+                                props.get_property_as_f32("moving_time", 1.0),
+                            ),
+                            destination_time: Duration::from_secs_f32(
+                                props.get_property_as_f32("destination_time", 2.0),
+                            ),
+                            destination_offset: {
+                                to_bevy_position(
+                                    &props.get_property_as_vec3("destination_offset", Vec3::ZERO),
+                                    &map_units,
+                                )
+                            },
+                            state: MoverState::default(),
+                        },
+                        TransformBundle {
+                            local: Transform::from_xyz(0.0, 0.0, 0.0),
+                            ..default()
+                        },
+                    ));
+
+                    if let Some(mover_kind) =
+                        props.get_property_as_string("mover_kind", Some(&"linear".into()))
+                    {
+                        match mover_kind.as_str() {
+                            "door" => {
+                                mover_entity.insert(Door {
+                                    key: props.get_property_as_string("key", None).into(),
+                                    open_once: props.get_property_as_bool("open_once", false),
+                                });
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
     }
 }
