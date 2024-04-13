@@ -55,7 +55,7 @@ struct APointClass {
     /// These are the angles of the entity!
     angles: QevyAngles,
     /// this is a base class, and won't be included in the fgd as a property, but as a base class!
-    #[qevy_entity(is_base_class = true)]
+    #[qevy_entity(is_base_class = true, base_class = "TestBaseClass")]
     test_base_class: TestBaseClass,
 }
 

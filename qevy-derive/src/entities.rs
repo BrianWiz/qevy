@@ -24,11 +24,13 @@ struct QevyEntityStructAttributes {
 struct QevyEntityFieldAttributes {
     #[deluxe(default = false)]
     is_base_class: bool,
+    #[deluxe(default = "".to_string())]
+    base_class: String,
 }
 
 fn extract_qevy_entity_field_comments(
     ast: &mut DeriveInput,
-) -> deluxe::Result<(Vec<String>, Vec<(String, bool)>)> {
+) -> deluxe::Result<(Vec<String>, Vec<(String, String, bool)>)> {
     let mut field_names = Vec::new();
     let mut field_attributes = Vec::new();
 
@@ -39,7 +41,11 @@ fn extract_qevy_entity_field_comments(
 
             let attrs: QevyEntityFieldAttributes = deluxe::extract_attributes(field)?;
 
-            field_attributes.push((get_comments(&field.attrs), attrs.is_base_class));
+            field_attributes.push((
+                get_comments(&field.attrs),
+                attrs.base_class,
+                attrs.is_base_class,
+            ));
         }
     } else {
         panic!("Only structs are supported for QevyEntity derive macro");
@@ -96,24 +102,29 @@ pub(crate) fn qevy_entity_derive_macro2(
     let entity_description = get_comments(&ast.attrs);
 
     // Extract field attributes
-    let (field_names, field_attributes): (Vec<String>, Vec<(String, bool)>) =
+    let (field_names, field_attributes): (Vec<String>, Vec<(String, String, bool)>) =
         extract_qevy_entity_field_comments(&mut ast)?;
     let field_comments = field_attributes
         .iter()
-        .map(|(comment, _)| comment)
+        .map(|(comment, ..)| comment)
         .collect::<Vec<&String>>();
     // enumerate through field_attributes, if it is a baseclass, get field_names with the index from the enumeration, and save it
     let base_classes = field_attributes
         .iter()
         .enumerate()
-        .filter_map(|(i, (_, is_base_class))| {
+        .filter_map(|(i, (_, base_class_name, is_base_class))| {
             if *is_base_class {
-                Some(field_names[i].clone())
+                if base_class_name.is_empty() {
+                    panic!("Base class name is empty");
+                }
+                Some((field_names[i].clone(), base_class_name.clone()))
             } else {
                 None
             }
         })
-        .collect::<Vec<String>>();
+        .collect::<Vec<(String, String)>>();
+    let base_classes_field_names = base_classes.iter().map(|(field_name, _)| field_name);
+    let base_classes_base_class_names = base_classes.iter().map(|(_, base_class_name)| base_class_name);
 
     // define impl variables
     let ident = &ast.ident;
@@ -140,8 +151,9 @@ pub(crate) fn qevy_entity_derive_macro2(
                 let color_string = #color_string;
                 let model_string: &str = #model_string;
 
-                let base_classes: Vec<&str> = vec![#(#base_classes),*];
-                let joined_base_classes = base_classes.join(", ");
+                let base_classes_field_names: Vec<&str> = vec![#(#base_classes_field_names),*];
+                let base_classes_base_class_names: Vec<&str> = vec![#(#base_classes_base_class_names),*];
+                let joined_base_classes = base_classes_base_class_names.join(", ");
                 let base_class_string = if joined_base_classes.is_empty() {
                     String::new()
                 } else {
@@ -158,7 +170,7 @@ pub(crate) fn qevy_entity_derive_macro2(
                             let name = named_field.name();
 
                             // Ignore base classes, as they don't need their own field in the fgd
-                            if base_classes.iter().any(|&base_class| base_class == name) {
+                            if base_classes_field_names.iter().any(|&base_class| base_class == name) {
                                 continue;
                             }
 

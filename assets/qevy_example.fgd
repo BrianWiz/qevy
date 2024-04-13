@@ -10,7 +10,7 @@
 
 ]
 
-@PointClass base(test_base_class) size(-8 -8 -8, 8 8 8) color(100 255 50) model({
+@PointClass base(TestBaseClass) size(-8 -8 -8, 8 8 8) color(100 255 50) model({
 	"path" : "models/monkey.gltf",
 	"frame" : 0,
 	"skin" : 0,
