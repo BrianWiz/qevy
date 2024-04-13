@@ -11,7 +11,7 @@
 ]
 
 @PointClass base(test_base_class) size(-8 -8 -8, 8 8 8) color(100 255 50) model({
-	"path" : "test",
+	"path" : "models/monkey.gltf",
 	"frame" : 0,
 	"skin" : 0,
 	"scale" : 32

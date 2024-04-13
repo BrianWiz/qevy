@@ -11,7 +11,7 @@ fn main() {
         .add_plugins((
             DefaultPlugins,
             qevy::MapAssetLoaderPlugin::default(),
-            qevy::auto_create_config::AutoCreateConfigPlugin::default(),
+            qevy::auto_create_config::AutoCreateConfigPlugin::new("qevy_example.fgd".into()),
         ))
         .register_qevy_entity::<Worldspawn>()
         .register_qevy_entity::<TestBaseClass>()
@@ -31,7 +31,7 @@ struct Worldspawn;
 /// This is a simple testing class, showcasing the different property types.
 #[derive(Reflect, QevyEntity)]
 #[reflect(QevyEntity, Default)]
-#[qevy_entity(entity_type = "Point", model = ("test", None, None, None), size = (8, 8, 8, 8, 8, 8), color = (100, 255, 50))]
+#[qevy_entity(entity_type = "Point", model = ("models/monkey.gltf", None, None, None), size = (8, 8, 8, 8, 8, 8), color = (100, 255, 50))]
 struct APointClass {
     /// This is a String property!
     test_string: String,
