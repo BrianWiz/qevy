@@ -10,7 +10,7 @@
 
 ]
 
-@PointClass base(test_base_class) size(-8, -8, -8, 8, 8, 8) model({
+@PointClass base(test_base_class) size(-8 -8 -8, 8 8 8) model({
 	"path" : "test",
 	"frame" : 0,
 	"skin" : 0,

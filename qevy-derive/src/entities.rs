@@ -77,7 +77,7 @@ pub(crate) fn qevy_entity_derive_macro2(
     let entity_size_string = size
         .map(|(min_x, min_y, min_z, max_x, max_y, max_z)| {
             format!(
-                "size(-{}, -{}, -{}, {}, {}, {})",
+                "size(-{} -{} -{}, {} {} {})",
                 min_x, min_y, min_z, max_x, max_y, max_z
             )
         })
