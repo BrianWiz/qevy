@@ -31,7 +31,7 @@ struct Worldspawn;
 /// This is a simple testing class, showcasing the different property types.
 #[derive(Reflect, QevyEntity)]
 #[reflect(QevyEntity, Default)]
-#[qevy_entity(entity_type = "Point", model = (Some("test"), None, None, None), size = (8, 8, 8, 8, 8, 8), color = (100, 255, 50))]
+#[qevy_entity(entity_type = "Point", model = ("test", None, None, None), size = (8, 8, 8, 8, 8, 8), color = (100, 255, 50))]
 struct APointClass {
     /// This is a String property!
     test_string: String,

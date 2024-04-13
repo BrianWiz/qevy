@@ -9,8 +9,8 @@ struct QevyEntityStructAttributes {
     #[deluxe(default = None)]
     entity_name: Option<String>,
     // (path, frame, skin, scale)
-    #[deluxe(default = (None, None, None, None))]
-    model: (Option<String>, Option<u32>, Option<u32>, Option<u32>),
+    #[deluxe(default = None)]
+    model: Option<(String, Option<u32>, Option<u32>, Option<u32>)>,
     // -x,-y,-z,+x,+y,+z
     #[deluxe(default = None)]
     size: Option<(u32, u32, u32, u32, u32, u32)>,
@@ -62,18 +62,15 @@ pub(crate) fn qevy_entity_derive_macro2(
         size,
         color,
     } = deluxe::extract_attributes(&mut ast)?;
-    let (model_path, model_frame, model_skin, model_scale) = (
-        model.0,
-        model.1.unwrap_or_default(), // defaults to 0
-        model.2.unwrap_or_default(), // defaults to 0
-        model.3.unwrap_or(32),       // defaults to 32
-    );
 
-    let model_string = model_path
-        .map(|path| {
+    let model_string = model
+        .map(|(path, frame, skin, scale)| {
             format!(
                 "model({{\n\t\"path\" : \"{}\",\n\t\"frame\" : {},\n\t\"skin\" : {},\n\t\"scale\" : {}\n}})",
-                path, model_frame, model_skin, model_scale
+                path,
+                frame.unwrap_or(0),
+                skin.unwrap_or(0),
+                scale.unwrap_or(32)
             )
         })
         .unwrap_or_else(|| String::new());
