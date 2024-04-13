@@ -14,6 +14,9 @@ struct QevyEntityStructAttributes {
     // -x,-y,-z,+x,+y,+z
     #[deluxe(default = None)]
     size: Option<(u32, u32, u32, u32, u32, u32)>,
+    // (r, g, b), 0-255
+    #[deluxe(default = None)]
+    color: Option<(u32, u32, u32)>,
 }
 
 #[derive(deluxe::ExtractAttributes)]
@@ -57,6 +60,7 @@ pub(crate) fn qevy_entity_derive_macro2(
         entity_name,
         model,
         size,
+        color,
     } = deluxe::extract_attributes(&mut ast)?;
     let (model_path, model_frame, model_skin, model_scale) = (
         model.0,
@@ -81,6 +85,10 @@ pub(crate) fn qevy_entity_derive_macro2(
                 min_x, min_y, min_z, max_x, max_y, max_z
             )
         })
+        .unwrap_or_else(|| String::new());
+
+    let color_string = color
+        .map(|(r, g, b)| format!("color({} {} {})", r, g, b))
         .unwrap_or_else(|| String::new());
 
     let entity_type = QevyEntityType::from_short_string(entity_type.as_str())
@@ -132,6 +140,7 @@ pub(crate) fn qevy_entity_derive_macro2(
                 let field_comments: Vec<&str> = vec![#(#field_comments),*];
 
                 let size_string = #entity_size_string;
+                let color_string = #color_string;
                 let model_string: &str = #model_string;
 
                 let base_classes: Vec<&str> = vec![#(#base_classes),*];
@@ -182,8 +191,8 @@ pub(crate) fn qevy_entity_derive_macro2(
                 };
 
                 format!(
-                    "{} {} {} {} = {} : \"{}\" [\n{}\n]\n",
-                    entity_type, base_class_string, size_string, model_string, short_name, description, types_string
+                    "{} {} {} {} {} = {} : \"{}\" [\n{}\n]\n",
+                    entity_type, base_class_string, size_string, color_string, model_string, short_name, description, types_string
                 )
             }
         }

@@ -1,16 +1,16 @@
-@SolidClass    = worldspawn : "World Entity" [
+@SolidClass     = worldspawn : "World Entity" [
 
 ]
 
-@BaseClass    = TestBaseClass : "" [
+@BaseClass     = TestBaseClass : "" [
 
 ]
 
-@SolidClass    = TestSolidClass : "" [
+@SolidClass     = TestSolidClass : "" [
 
 ]
 
-@PointClass base(test_base_class) size(-8 -8 -8, 8 8 8) model({
+@PointClass base(test_base_class) size(-8 -8 -8, 8 8 8) color(100 255 50) model({
 	"path" : "test",
 	"frame" : 0,
 	"skin" : 0,
