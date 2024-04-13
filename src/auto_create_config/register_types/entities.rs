@@ -1,10 +1,21 @@
 use std::any::{Any, TypeId};
 
-use bevy::{prelude::*, reflect::GetTypeRegistration};
+use bevy::{
+    prelude::*,
+    reflect::{GetTypeRegistration, TypeRegistration, TypeRegistry},
+};
 
 use crate::auto_create_config::QevyRegistry;
 
-use super::QevyEntity;
+#[reflect_trait]
+pub trait QevyEntity: Reflect {
+    fn get_export_string(
+        &self,
+        my_registration: &TypeRegistration,
+        registry: &TypeRegistry,
+        default_value: &mut Box<dyn Reflect>,
+    ) -> String;
+}
 
 pub trait QevyRegisterSolidClass {
     fn register_qevy_entity<T: QevyEntity + GetTypeRegistration + Any + Default>(

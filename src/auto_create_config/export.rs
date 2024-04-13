@@ -5,7 +5,7 @@ use bevy::{
     reflect::{TypeRegistration, TypeRegistry},
 };
 
-use crate::auto_create_config::register_types::ReflectQevyEntity;
+use crate::auto_create_config::register_types::entities::ReflectQevyEntity;
 
 use super::{AssetRoot, AutoCreateConfigSettings, QevyRegistry};
 

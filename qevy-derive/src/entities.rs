@@ -8,9 +8,12 @@ struct QevyEntityStructAttributes {
     entity_type: String,
     #[deluxe(default = None)]
     entity_name: Option<String>,
-    #[deluxe(default = (None, None, None, None))]
     // (path, frame, skin, scale)
+    #[deluxe(default = (None, None, None, None))]
     model: (Option<String>, Option<u32>, Option<u32>, Option<u32>),
+    // -x,-y,-z,+x,+y,+z
+    #[deluxe(default = None)]
+    size: Option<(u32, u32, u32, u32, u32, u32)>,
 }
 
 #[derive(deluxe::ExtractAttributes)]
@@ -53,6 +56,7 @@ pub(crate) fn qevy_entity_derive_macro2(
         entity_type,
         entity_name,
         model,
+        size,
     } = deluxe::extract_attributes(&mut ast)?;
     let (model_path, model_frame, model_skin, model_scale) = (
         model.0,
@@ -66,6 +70,15 @@ pub(crate) fn qevy_entity_derive_macro2(
             format!(
                 "model({{\n\t\"path\" : \"{}\",\n\t\"frame\" : {},\n\t\"skin\" : {},\n\t\"scale\" : {}\n}})",
                 path, model_frame, model_skin, model_scale
+            )
+        })
+        .unwrap_or_else(|| String::new());
+
+    let entity_size_string = size
+        .map(|(min_x, min_y, min_z, max_x, max_y, max_z)| {
+            format!(
+                "size(-{}, -{}, -{}, {}, {}, {})",
+                min_x, min_y, min_z, max_x, max_y, max_z
             )
         })
         .unwrap_or_else(|| String::new());
@@ -97,8 +110,6 @@ pub(crate) fn qevy_entity_derive_macro2(
         })
         .collect::<Vec<String>>();
 
-    /* let base_classes =  */
-
     // define impl variables
     let ident = &ast.ident;
     // if the entity_name is not set, use the struct name
@@ -120,6 +131,7 @@ pub(crate) fn qevy_entity_derive_macro2(
                 let field_names: Vec<&str> = vec![#(#field_names),*];
                 let field_comments: Vec<&str> = vec![#(#field_comments),*];
 
+                let size_string = #entity_size_string;
                 let model_string: &str = #model_string;
 
                 let base_classes: Vec<&str> = vec![#(#base_classes),*];
@@ -170,8 +182,8 @@ pub(crate) fn qevy_entity_derive_macro2(
                 };
 
                 format!(
-                    "{} {} {} = {} : \"{}\" [\n{}\n]\n",
-                    entity_type, base_class_string, model_string, short_name, description, types_string
+                    "{} {} {} {} = {} : \"{}\" [\n{}\n]\n",
+                    entity_type, base_class_string, size_string, model_string, short_name, description, types_string
                 )
             }
         }

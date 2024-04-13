@@ -1,9 +1,8 @@
 use bevy::prelude::*;
 use bevy::reflect::ReflectMut;
 use qevy::auto_create_config::register_types::{
-    entities::QevyRegisterSolidClass,
-    properties::{QevyProperty, ReflectQevyProperty},
-    QevyEntity, ReflectQevyEntity,
+    entities::{QevyEntity, QevyRegisterSolidClass, ReflectQevyEntity},
+    properties::{QevyAngles, QevyProperty, ReflectQevyProperty},
 };
 use qevy_derive::QevyEntity;
 
@@ -32,7 +31,7 @@ struct Worldspawn;
 /// This is a simple testing class, showcasing the different property types.
 #[derive(Reflect, QevyEntity)]
 #[reflect(QevyEntity, Default)]
-#[qevy_entity(entity_type = "Point", model = (Some("test"), None, None, None))]
+#[qevy_entity(entity_type = "Point", model = (Some("test"), None, None, None), size = (8, 8, 8, 8, 8, 8))]
 struct APointClass {
     /// This is a String property!
     test_string: String,
@@ -51,7 +50,11 @@ struct APointClass {
     test_flag: EnumTestFlag,
     /// This is a choices property!
     test_choices: EnumTestChoices,
-    /// this is a base class, and won't be included in the fgd!
+    /// This is a color property!
+    test_color: Color,
+    /// These are the angles of the entity!
+    angles: QevyAngles,
+    /// this is a base class, and won't be included in the fgd as a property, but as a base class!
     #[qevy_entity(is_base_class = true)]
     test_base_class: TestBaseClass,
 }
@@ -64,13 +67,15 @@ impl Default for APointClass {
             test_bool: true,
             test_f32: 69.420,
             test_f64: 420.69,
-            test_i32: Default::default(),
-            test_i64: Default::default(),
-            test_u32: Default::default(),
-            test_u64: Default::default(),
+            test_i32: i32::default(),
+            test_i64: i64::default(),
+            test_u32: u32::default(),
+            test_u64: u64::default(),
             test_flag: EnumTestFlag::EnumVariantTest,
             test_choices: EnumTestChoices::EnumVariantTest,
             test_base_class: TestBaseClass,
+            test_color: Color::rgb(1.0, 0.5, 0.75), // some random color, idk
+            angles: QevyAngles::default(),
         }
     }
 }

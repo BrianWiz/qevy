@@ -18,8 +18,9 @@ impl Plugin for QevyPropertyPlugin {
         // Register all types that implement QevyProperty here
         register_qevy_property_types!(
             app, u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize, f64, f32, String,
-            bool
+            bool, Color
         );
+        app.register_type::<QevyAngles>();
     }
 }
 
@@ -28,7 +29,27 @@ pub trait QevyProperty: Reflect {
     fn get_fgd_string(&self, field_name: &str, field_description: &str) -> &'static str;
 }
 
-// Implementation for bool as an example
+#[derive(Reflect, Default)]
+#[reflect(QevyProperty)]
+pub struct QevyAngles {
+    pub pitch: f32,
+    pub yaw: f32,
+    pub roll: f32,
+}
+
+impl QevyProperty for QevyAngles {
+    fn get_fgd_string(&self, _field_name: &str, field_description: &str) -> &'static str {
+        Box::leak(
+            format!(
+                "\tangles(string) : \"Angles (x y z)\" : \"{} {} {}\" : \"{}\"",
+                self.pitch, self.yaw, self.roll, field_description
+            )
+            .into_boxed_str(),
+        )
+    }
+}
+
+// Implementation for bool
 impl QevyProperty for bool {
     fn get_fgd_string(&self, field_name: &str, field_description: &str) -> &'static str {
         let value = if *self { 1 } else { 0 };
@@ -38,6 +59,26 @@ impl QevyProperty for bool {
             "\t{}(choices) : \"{}\" : {} : \"{}\" =\n\t[\n\t\t0 : \"False\"\n\t\t1 : \"True\"\n\t]",
             field_name, field_name, value, field_description
         )
+            .into_boxed_str(),
+        )
+    }
+}
+
+// Implementation for color
+impl QevyProperty for Color {
+    fn get_fgd_string(&self, field_name: &str, field_description: &str) -> &'static str {
+        let rgb_string = format!(
+            "{} {} {}",
+            (self.r() * 255.0) as u8,
+            (self.g() * 255.0) as u8,
+            (self.b() * 255.0) as u8
+        );
+
+        Box::leak(
+            format!(
+                "\t{}(color) : \"{}\" : \"{}\" : \"{}\"",
+                field_name, field_name, rgb_string, field_description
+            )
             .into_boxed_str(),
         )
     }

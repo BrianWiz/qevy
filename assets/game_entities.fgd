@@ -1,16 +1,16 @@
-@SolidClass   = worldspawn : "World Entity" [
+@SolidClass    = worldspawn : "World Entity" [
 
 ]
 
-@BaseClass   = TestBaseClass : "" [
+@BaseClass    = TestBaseClass : "" [
 
 ]
 
-@SolidClass   = TestSolidClass : "" [
+@SolidClass    = TestSolidClass : "" [
 
 ]
 
-@PointClass base(test_base_class) model({
+@PointClass base(test_base_class) size(-8, -8, -8, 8, 8, 8) model({
 	"path" : "test",
 	"frame" : 0,
 	"skin" : 0,
@@ -41,5 +41,7 @@
 		"VariantTest!!!!" : "EnumVariantTest"
 		2 : "AnotherEnumVariant"
 	]
+	test_color(color) : "test_color" : "255 127 191" : "This is a color property!"
+	angles(string) : "Angles (x y z)" : "0 0 0" : "These are the angles of the entity!"
 ]
 
