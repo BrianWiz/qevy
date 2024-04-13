@@ -22,15 +22,13 @@ struct QevyEntityStructAttributes {
 #[derive(deluxe::ExtractAttributes)]
 #[deluxe(attributes(qevy_entity))]
 struct QevyEntityFieldAttributes {
-    #[deluxe(default = false)]
-    is_base_class: bool,
-    #[deluxe(default = "".to_string())]
-    base_class: String,
+    #[deluxe(default = None)]
+    base_class: Option<String>,
 }
 
 fn extract_qevy_entity_field_comments(
     ast: &mut DeriveInput,
-) -> deluxe::Result<(Vec<String>, Vec<(String, String, bool)>)> {
+) -> deluxe::Result<(Vec<String>, Vec<(String, Option<String>)>)> {
     let mut field_names = Vec::new();
     let mut field_attributes = Vec::new();
 
@@ -41,11 +39,7 @@ fn extract_qevy_entity_field_comments(
 
             let attrs: QevyEntityFieldAttributes = deluxe::extract_attributes(field)?;
 
-            field_attributes.push((
-                get_comments(&field.attrs),
-                attrs.base_class,
-                attrs.is_base_class,
-            ));
+            field_attributes.push((get_comments(&field.attrs), attrs.base_class));
         }
     } else {
         panic!("Only structs are supported for QevyEntity derive macro");
@@ -102,7 +96,7 @@ pub(crate) fn qevy_entity_derive_macro2(
     let entity_description = get_comments(&ast.attrs);
 
     // Extract field attributes
-    let (field_names, field_attributes): (Vec<String>, Vec<(String, String, bool)>) =
+    let (field_names, field_attributes): (Vec<String>, Vec<(String, Option<String>)>) =
         extract_qevy_entity_field_comments(&mut ast)?;
     let field_comments = field_attributes
         .iter()
@@ -112,19 +106,19 @@ pub(crate) fn qevy_entity_derive_macro2(
     let base_classes = field_attributes
         .iter()
         .enumerate()
-        .filter_map(|(i, (_, base_class_name, is_base_class))| {
-            if *is_base_class {
+        .filter_map(|(i, (_, base_class_name))| {
+            base_class_name.as_ref().map(|base_class_name| {
                 if base_class_name.is_empty() {
-                    panic!("Base class name is empty");
+                    panic!("Base class name cannot be empty");
                 }
-                Some((field_names[i].clone(), base_class_name.clone()))
-            } else {
-                None
-            }
+                (field_names[i].clone(), base_class_name.clone())
+            })
         })
         .collect::<Vec<(String, String)>>();
     let base_classes_field_names = base_classes.iter().map(|(field_name, _)| field_name);
-    let base_classes_base_class_names = base_classes.iter().map(|(_, base_class_name)| base_class_name);
+    let base_classes_base_class_names = base_classes
+        .iter()
+        .map(|(_, base_class_name)| base_class_name);
 
     // define impl variables
     let ident = &ast.ident;
