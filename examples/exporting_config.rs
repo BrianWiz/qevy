@@ -6,13 +6,20 @@ use qevy::auto_create_config::register_types::{
 };
 use qevy_derive::QevyEntity;
 
+/*
+This example demonstrates on how to automatically create an fgd file from registered structs.
+This can be very useful, as any changes to the struct will automatically be reflected in the fgd file.
+*/
+
 fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
             qevy::MapAssetLoaderPlugin::default(),
+            // 1. Add the AutoCreateConfigPlugin. you could hide this behind a feature flag, so it doesn't get included in the release build for example.
             qevy::auto_create_config::AutoCreateConfigPlugin::new("qevy_example.fgd".into()),
         ))
+        // 2. Register any struct
         .register_qevy_entity::<Worldspawn>()
         .register_qevy_entity::<TestBaseClass>()
         .register_qevy_entity::<TestSolidClass>()
@@ -21,6 +28,9 @@ fn main() {
         .register_type::<EnumTestChoices>()
         .run();
 }
+
+// 3. Define the structs you want to register. Structs need to always derive Reflect and QevyEntity, and need to have Default implemented.
+// 4. Make sure to also reflect QevyEntity and Default for the struct. 
 
 /// World Entity
 #[derive(Reflect, QevyEntity, Default)]
