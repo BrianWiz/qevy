@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use avian3d::prelude::*;
-use bevy::audio::Decodable;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy::{input::mouse::MouseMotion, window::CursorGrabMode};
@@ -77,7 +76,7 @@ pub fn my_post_build_map_system(
                         transform: props.transform,
                         mesh: asset_server.load("models/monkey.gltf#Mesh0/Primitive0"),
                         material: materials.add(StandardMaterial {
-                            base_color: Color::rgb(0.5, 0.5, 0.5),
+                            base_color: Color::srgb(0.5, 0.5, 0.5),
                             ..default()
                         }),
                         ..default()
@@ -188,7 +187,7 @@ pub fn door_system(
     mut q_doors: Query<(&mut Door, &TriggerTarget, &mut Transform, &mut Mover)>,
 ) {
     for triggered_event in ev_reader.read() {
-        for (mut door, trigger_target, _, mut mover) in q_doors.iter_mut() {
+        for (_, trigger_target, _, mut mover) in q_doors.iter_mut() {
             if trigger_target.target_name == triggered_event.target {
                 match mover.state {
                     MoverState::AtStart => {
@@ -210,7 +209,7 @@ pub fn door_system(
     }
 
     let delta = time.delta();
-    for (mut door, _, mut transform, mut mover) in q_doors.iter_mut() {
+    for (door, _, mut transform, mut mover) in q_doors.iter_mut() {
         let destination_offset = mover.destination_offset;
         let moving_time_secs = mover.moving_time.as_secs_f32();
         match &mut mover.state {

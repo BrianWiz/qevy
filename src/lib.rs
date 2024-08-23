@@ -1,6 +1,5 @@
 use bevy::asset::io::Reader;
 use bevy::asset::{AssetLoader, Handle, LoadContext};
-use bevy::ecs::system::SystemId;
 use bevy::prelude::*;
 use bevy::reflect::TypePath;
 use components::MapUnits;
