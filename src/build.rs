@@ -209,8 +209,11 @@ pub fn build_map(
                         if let Some(convex_hull) =
                             avian3d::prelude::Collider::convex_hull(brush_vertices)
                         {
-                            let mut collider =
-                                gchildren.spawn((convex_hull, TransformBundle::default()));
+                            let mut collider = gchildren.spawn((
+                                convex_hull,
+                                TransformBundle::default(),
+                                VisibilityBundle::default(),
+                            ));
                             if classname == "trigger_multiple" {
                                 collider.insert((
                                     TriggerMultiple {
@@ -254,8 +257,11 @@ pub fn build_map(
                         if let Some(convex_hull) =
                             bevy_rapier3d::prelude::Collider::convex_hull(&brush_vertices)
                         {
-                            let mut collider =
-                                gchildren.spawn((convex_hull, TransformBundle::default()));
+                            let mut collider = gchildren.spawn((
+                                convex_hull,
+                                TransformBundle::default(),
+                                VisibilityBundle::default(),
+                            ));
                             if classname == "trigger_multiple" {
                                 collider.insert((
                                     TriggerMultiple {
