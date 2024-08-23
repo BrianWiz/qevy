@@ -1,8 +1,8 @@
+use avian3d::prelude::*;
 use bevy::audio::Decodable;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy::{input::mouse::MouseMotion, window::CursorGrabMode};
-use bevy_xpbd_3d::prelude::*;
 
 use qevy::{components::*, PostBuildMapEvent};
 
@@ -23,8 +23,8 @@ fn main() {
         .add_plugins((
             DefaultPlugins,
             qevy::MapAssetLoaderPlugin::default(),
-            PhysicsPlugins::default(), // XPBD
-                                       //PhysicsDebugPlugin::default(),
+            PhysicsPlugins::default(), // Avian
+            PhysicsDebugPlugin::default(),
         ))
         .add_systems(Startup, (spawn_map, spawn_character))
         .add_systems(
@@ -35,7 +35,7 @@ fn main() {
                 my_post_build_map_system,
                 door_system,
                 qevy::load::post_build_map_system,
-                qevy::gameplay_systems::xpbd_trigger_system,
+                qevy::gameplay_systems::avian_trigger_system,
             ),
         )
         .run();

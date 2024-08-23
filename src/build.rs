@@ -204,10 +204,10 @@ pub fn build_map(
                     }
 
                     // spawn it's collider
-                    #[cfg(feature = "xpbd")]
+                    #[cfg(feature = "avian")]
                     {
                         if let Some(convex_hull) =
-                            bevy_xpbd_3d::prelude::Collider::convex_hull(brush_vertices)
+                            avian3d::prelude::Collider::convex_hull(brush_vertices)
                         {
                             let mut collider =
                                 gchildren.spawn((convex_hull, TransformBundle::default()));
@@ -216,19 +216,19 @@ pub fn build_map(
                                     TriggerMultiple {
                                         target: props.get("target").unwrap().to_string(),
                                     },
-                                    bevy_xpbd_3d::prelude::RigidBody::Dynamic,
-                                    bevy_xpbd_3d::prelude::Sensor,
+                                    avian3d::prelude::RigidBody::Dynamic,
+                                    avian3d::prelude::Sensor,
                                 ));
                             } else if classname == "trigger_once" {
                                 collider.insert((
                                     TriggerOnce {
                                         target: props.get("target").unwrap().to_string(),
                                     },
-                                    bevy_xpbd_3d::prelude::RigidBody::Dynamic,
-                                    bevy_xpbd_3d::prelude::Sensor,
+                                    avian3d::prelude::RigidBody::Dynamic,
+                                    avian3d::prelude::Sensor,
                                 ));
                             } else {
-                                collider.insert((bevy_xpbd_3d::prelude::RigidBody::Static,));
+                                collider.insert((avian3d::prelude::RigidBody::Static,));
                             }
 
                             for (mesh, texture_name) in meshes_to_spawn {
@@ -249,7 +249,7 @@ pub fn build_map(
                     }
 
                     #[cfg(feature = "rapier")]
-                    #[cfg(not(feature = "xpbd"))]
+                    #[cfg(not(feature = "avian"))]
                     {
                         if let Some(convex_hull) =
                             bevy_rapier3d::prelude::Collider::convex_hull(&brush_vertices)
