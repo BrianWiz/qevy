@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use avian3d::prelude::*;
 use bevy::audio::Decodable;
 use bevy::prelude::*;
@@ -24,7 +26,7 @@ fn main() {
             DefaultPlugins,
             qevy::MapAssetLoaderPlugin::default(),
             PhysicsPlugins::default(), // Avian
-            PhysicsDebugPlugin::default(),
+                                       // PhysicsDebugPlugin::default(),
         ))
         .add_systems(Startup, (spawn_map, spawn_character))
         .add_systems(
@@ -34,7 +36,7 @@ fn main() {
                 grab_mouse,
                 my_post_build_map_system,
                 door_system,
-                qevy::load::post_build_map_system,
+                qevy::build::post_build_map_system,
                 qevy::gameplay_systems::avian_trigger_system,
             ),
         )
@@ -183,50 +185,66 @@ fn movement(
 pub fn door_system(
     time: Res<Time>,
     mut ev_reader: EventReader<TriggeredEvent>,
-    mut q_doors: Query<(&mut Door, &TriggerTarget, &mut Transform, &Mover)>,
+    mut q_doors: Query<(&mut Door, &TriggerTarget, &mut Transform, &mut Mover)>,
 ) {
     for triggered_event in ev_reader.read() {
-        for (mut door, trigger_target, _, _) in q_doors.iter_mut() {
+        for (mut door, trigger_target, _, mut mover) in q_doors.iter_mut() {
             if trigger_target.target_name == triggered_event.target {
-                door.triggered_time = Some(std::time::Instant::now());
+                match mover.state {
+                    MoverState::AtStart => {
+                        mover.state = MoverState::MovingToDestination(Timer::new(
+                            mover.moving_time,
+                            TimerMode::Once,
+                        ))
+                    }
+                    MoverState::AtDestination(_) => {
+                        mover.state = MoverState::AtDestination(Timer::new(
+                            mover.destination_time,
+                            TimerMode::Once,
+                        ))
+                    }
+                    _ => {}
+                }
             }
         }
     }
 
-    for (mut door, _, mut transform, mover) in q_doors.iter_mut() {
-        let triggered = if door.open_once {
-            door.triggered_time.is_some()
-        } else {
-            door.triggered_time.is_some()
-                && (std::time::Instant::now() - door.triggered_time.unwrap() < door.open_time)
-        };
-
-        // open
-        if triggered {
-            let destination = mover.destination_translation;
-            let direction = destination - transform.translation;
-            let move_distance = mover.speed * time.delta_seconds();
-
-            if direction.length() < move_distance {
-                transform.translation = destination;
-            } else {
-                transform.translation += direction.normalize() * move_distance;
+    let delta = time.delta();
+    for (mut door, _, mut transform, mut mover) in q_doors.iter_mut() {
+        let destination_offset = mover.destination_offset;
+        let moving_time_secs = mover.moving_time.as_secs_f32();
+        match &mut mover.state {
+            MoverState::AtStart => {}
+            MoverState::MovingToDestination(ref mut timer) => {
+                timer.tick(delta);
+                transform.translation +=
+                    destination_offset / moving_time_secs * delta.as_secs_f32();
+                if timer.just_finished() {
+                    if door.open_once {
+                        mover.state =
+                            MoverState::AtDestination(Timer::new(Duration::MAX, TimerMode::Once))
+                    } else {
+                        mover.state = MoverState::AtDestination(Timer::new(
+                            mover.destination_time,
+                            TimerMode::Once,
+                        ))
+                    }
+                }
             }
-        // close
-        } else {
-            if !door.open_once && door.triggered_time.is_some() {
-                continue;
+            MoverState::AtDestination(ref mut timer) => {
+                timer.tick(delta);
+                if timer.just_finished() {
+                    mover.state =
+                        MoverState::MovingToStart(Timer::new(mover.moving_time, TimerMode::Once))
+                }
             }
-            door.triggered_time = None;
-
-            let destination = mover.start_translation;
-            let direction = destination - transform.translation;
-            let move_distance = mover.speed * time.delta_seconds();
-
-            if direction.length() < move_distance {
-                transform.translation = destination;
-            } else {
-                transform.translation += direction.normalize() * move_distance;
+            MoverState::MovingToStart(ref mut timer) => {
+                timer.tick(delta);
+                transform.translation -=
+                    destination_offset / moving_time_secs * delta.as_secs_f32();
+                if timer.just_finished() {
+                    mover.state = MoverState::AtStart;
+                }
             }
         }
     }
