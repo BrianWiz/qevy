@@ -1,6 +1,12 @@
 use std::time::Duration;
 
+#[cfg(feature = "avian")]
 use avian3d::prelude::*;
+
+#[cfg(feature = "rapier")]
+#[cfg(not(feature = "avian"))]
+use bevy_rapier3d::prelude::*;
+
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy::{input::mouse::MouseMotion, window::CursorGrabMode};
@@ -24,8 +30,15 @@ fn main() {
         .add_plugins((
             DefaultPlugins,
             qevy::MapAssetLoaderPlugin::default(),
-            PhysicsPlugins::default(), // Avian
-                                       // PhysicsDebugPlugin::default(),
+            // Avian
+            #[cfg(feature = "avian")]
+            PhysicsPlugins::default(),
+            // PhysicsDebugPlugin::default(),
+            // Rapier
+            #[cfg(feature = "rapier")]
+            #[cfg(not(feature = "avian"))]
+            RapierPhysicsPlugin::<NoUserData>::default(),
+            // RapierDebugRenderPlugin::default()
         ))
         .add_systems(Startup, (spawn_map, spawn_character))
         .add_systems(
@@ -36,7 +49,13 @@ fn main() {
                 my_post_build_map_system,
                 door_system,
                 qevy::build::post_build_map_system,
+                // Avian
+                #[cfg(feature = "avian")]
                 qevy::gameplay_systems::avian_trigger_system,
+                // Rapier
+                #[cfg(feature = "rapier")]
+                #[cfg(not(feature = "avian"))]
+                qevy::gameplay_systems::rapier_trigger_system,
             ),
         )
         .run();
@@ -108,18 +127,24 @@ fn spawn_character(mut commands: Commands, mut q_windows: Query<&mut Window, Wit
     });
 
     // spawn the character
-    commands.spawn((
+    let mut character = commands.spawn((
         Character,
         TriggerInstigator,
         RigidBody::Dynamic,
         GravityScale(0.0),
         Rotation(Quat::IDENTITY),
-        Collider::sphere(0.5),
         TransformBundle {
             local: Transform::from_xyz(0.0, 5.0, 0.0),
             ..default()
         },
     ));
+
+    #[cfg(feature = "avian")]
+    character.insert((Collider::sphere(0.5),));
+
+    #[cfg(feature = "rapier")]
+    #[cfg(not(feature = "avian"))]
+    character.insert((Collider::ball(0.5), Velocity::default()));
 
     // center the cursor
     let mut window = q_windows.single_mut();
@@ -133,23 +158,37 @@ fn movement(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut mouse_motion: EventReader<MouseMotion>,
     mut cameras: Query<&mut Transform, (With<Camera3d>, Without<Character>)>,
-    mut characters: Query<(&Transform, &mut LinearVelocity, &mut Rotation), With<Character>>,
+    #[cfg(feature = "avian")] mut characters: Query<
+        (&Transform, &mut LinearVelocity, &mut Rotation),
+        With<Character>,
+    >,
+
+    #[cfg(feature = "rapier")]
+    #[cfg(not(feature = "avian"))]
+    mut characters: Query<(&Transform, &mut Velocity, &mut Rotation), With<Character>>,
 ) {
-    for (collider_transform, mut linear_velocity, mut rotation) in &mut characters {
+    for (collider_transform, mut velocity, mut rotation) in &mut characters {
+        #[cfg(feature = "avian")]
+        let linear_velocity = &mut velocity.0;
+
+        #[cfg(feature = "rapier")]
+        #[cfg(not(feature = "avian"))]
+        let linear_velocity = &mut velocity.linvel;
+
         for mut camera_transform in &mut cameras {
             // Directional movement
             if keyboard_input.pressed(KeyCode::KeyW) || keyboard_input.pressed(KeyCode::ArrowUp) {
-                linear_velocity.0 -= rotation.0 * MOVE_SPEED * Vec3::Z;
+                *linear_velocity -= rotation.0 * MOVE_SPEED * Vec3::Z;
             }
             if keyboard_input.pressed(KeyCode::KeyS) || keyboard_input.pressed(KeyCode::ArrowDown) {
-                linear_velocity.0 += rotation.0 * MOVE_SPEED * Vec3::Z;
+                *linear_velocity += rotation.0 * MOVE_SPEED * Vec3::Z;
             }
             if keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft) {
-                linear_velocity.0 -= rotation.0 * MOVE_SPEED * Vec3::X;
+                *linear_velocity -= rotation.0 * MOVE_SPEED * Vec3::X;
             }
             if keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight)
             {
-                linear_velocity.0 += rotation.0 * MOVE_SPEED * Vec3::X;
+                *linear_velocity += rotation.0 * MOVE_SPEED * Vec3::X;
             }
             if keyboard_input.pressed(KeyCode::KeyQ) || keyboard_input.pressed(KeyCode::Space) {
                 linear_velocity.y += MOVE_SPEED;
@@ -159,7 +198,7 @@ fn movement(
             }
 
             // Slow player down
-            linear_velocity.0 *= 0.82;
+            *linear_velocity *= 0.82;
 
             // FPS look
             let (mut yaw, mut pitch, _) = camera_transform.rotation.to_euler(EulerRot::YXZ);

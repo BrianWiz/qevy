@@ -3,6 +3,7 @@ use bevy::render::mesh::Indices;
 use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::render_resource::PrimitiveTopology;
 #[cfg(feature = "rapier")]
+#[cfg(not(feature = "avian"))]
 use bevy_rapier3d::geometry::ActiveCollisionTypes;
 use std::collections::BTreeMap;
 use std::time::Duration;

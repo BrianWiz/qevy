@@ -1,5 +1,5 @@
 use crate::components::*;
-use bevy::{prelude::*, utils::HashSet};
+use bevy::prelude::*;
 
 #[cfg(feature = "rapier")]
 use bevy_rapier3d::prelude::*;
@@ -37,6 +37,9 @@ pub fn rapier_trigger_system(
 
 #[cfg(feature = "avian")]
 use avian3d::prelude::*;
+
+#[cfg(feature = "avian")]
+use bevy::utils::HashSet;
 
 #[cfg(feature = "avian")]
 pub fn avian_trigger_system(
