@@ -70,7 +70,7 @@ impl MapEntityProperties {
                     value[1].parse::<f32>(),
                     value[2].parse::<f32>(),
                 ) {
-                    return Color::rgb(r, g, b);
+                    return Color::srgb(r, g, b);
                 }
             }
         }

@@ -1,8 +1,15 @@
-use bevy::audio::Decodable;
+use std::time::Duration;
+
+#[cfg(feature = "avian")]
+use avian3d::prelude::*;
+
+#[cfg(feature = "rapier")]
+#[cfg(not(feature = "avian"))]
+use bevy_rapier3d::prelude::*;
+
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy::{input::mouse::MouseMotion, window::CursorGrabMode};
-use bevy_xpbd_3d::prelude::*;
 
 use qevy::{components::*, PostBuildMapEvent};
 
@@ -23,8 +30,15 @@ fn main() {
         .add_plugins((
             DefaultPlugins,
             qevy::MapAssetLoaderPlugin::default(),
-            PhysicsPlugins::default(), // XPBD
-                                       //PhysicsDebugPlugin::default(),
+            // Avian
+            #[cfg(feature = "avian")]
+            PhysicsPlugins::default(),
+            // PhysicsDebugPlugin::default(),
+            // Rapier
+            #[cfg(feature = "rapier")]
+            #[cfg(not(feature = "avian"))]
+            RapierPhysicsPlugin::<NoUserData>::default(),
+            // RapierDebugRenderPlugin::default()
         ))
         .add_systems(Startup, (spawn_map, spawn_character))
         .add_systems(
@@ -34,8 +48,14 @@ fn main() {
                 grab_mouse,
                 my_post_build_map_system,
                 door_system,
-                qevy::load::post_build_map_system,
-                qevy::gameplay_systems::xpbd_trigger_system,
+                qevy::build::post_build_map_system,
+                // Avian
+                #[cfg(feature = "avian")]
+                qevy::gameplay_systems::avian_trigger_system,
+                // Rapier
+                #[cfg(feature = "rapier")]
+                #[cfg(not(feature = "avian"))]
+                qevy::gameplay_systems::rapier_trigger_system,
             ),
         )
         .run();
@@ -75,7 +95,7 @@ pub fn my_post_build_map_system(
                         transform: props.transform,
                         mesh: asset_server.load("models/monkey.gltf#Mesh0/Primitive0"),
                         material: materials.add(StandardMaterial {
-                            base_color: Color::rgb(0.5, 0.5, 0.5),
+                            base_color: Color::srgb(0.5, 0.5, 0.5),
                             ..default()
                         }),
                         ..default()
@@ -107,18 +127,24 @@ fn spawn_character(mut commands: Commands, mut q_windows: Query<&mut Window, Wit
     });
 
     // spawn the character
-    commands.spawn((
+    let mut character = commands.spawn((
         Character,
         TriggerInstigator,
         RigidBody::Dynamic,
         GravityScale(0.0),
         Rotation(Quat::IDENTITY),
-        Collider::sphere(0.5),
         TransformBundle {
             local: Transform::from_xyz(0.0, 5.0, 0.0),
             ..default()
         },
     ));
+
+    #[cfg(feature = "avian")]
+    character.insert((Collider::sphere(0.5),));
+
+    #[cfg(feature = "rapier")]
+    #[cfg(not(feature = "avian"))]
+    character.insert((Collider::ball(0.5), Velocity::default()));
 
     // center the cursor
     let mut window = q_windows.single_mut();
@@ -132,23 +158,37 @@ fn movement(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut mouse_motion: EventReader<MouseMotion>,
     mut cameras: Query<&mut Transform, (With<Camera3d>, Without<Character>)>,
-    mut characters: Query<(&Transform, &mut LinearVelocity, &mut Rotation), With<Character>>,
+    #[cfg(feature = "avian")] mut characters: Query<
+        (&Transform, &mut LinearVelocity, &mut Rotation),
+        With<Character>,
+    >,
+
+    #[cfg(feature = "rapier")]
+    #[cfg(not(feature = "avian"))]
+    mut characters: Query<(&Transform, &mut Velocity, &mut Rotation), With<Character>>,
 ) {
-    for (collider_transform, mut linear_velocity, mut rotation) in &mut characters {
+    for (collider_transform, mut velocity, mut rotation) in &mut characters {
+        #[cfg(feature = "avian")]
+        let linear_velocity = &mut velocity.0;
+
+        #[cfg(feature = "rapier")]
+        #[cfg(not(feature = "avian"))]
+        let linear_velocity = &mut velocity.linvel;
+
         for mut camera_transform in &mut cameras {
             // Directional movement
             if keyboard_input.pressed(KeyCode::KeyW) || keyboard_input.pressed(KeyCode::ArrowUp) {
-                linear_velocity.0 -= rotation.0 * MOVE_SPEED * Vec3::Z;
+                *linear_velocity -= rotation.0 * MOVE_SPEED * Vec3::Z;
             }
             if keyboard_input.pressed(KeyCode::KeyS) || keyboard_input.pressed(KeyCode::ArrowDown) {
-                linear_velocity.0 += rotation.0 * MOVE_SPEED * Vec3::Z;
+                *linear_velocity += rotation.0 * MOVE_SPEED * Vec3::Z;
             }
             if keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft) {
-                linear_velocity.0 -= rotation.0 * MOVE_SPEED * Vec3::X;
+                *linear_velocity -= rotation.0 * MOVE_SPEED * Vec3::X;
             }
             if keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight)
             {
-                linear_velocity.0 += rotation.0 * MOVE_SPEED * Vec3::X;
+                *linear_velocity += rotation.0 * MOVE_SPEED * Vec3::X;
             }
             if keyboard_input.pressed(KeyCode::KeyQ) || keyboard_input.pressed(KeyCode::Space) {
                 linear_velocity.y += MOVE_SPEED;
@@ -158,7 +198,7 @@ fn movement(
             }
 
             // Slow player down
-            linear_velocity.0 *= 0.82;
+            *linear_velocity *= 0.82;
 
             // FPS look
             let (mut yaw, mut pitch, _) = camera_transform.rotation.to_euler(EulerRot::YXZ);
@@ -183,50 +223,66 @@ fn movement(
 pub fn door_system(
     time: Res<Time>,
     mut ev_reader: EventReader<TriggeredEvent>,
-    mut q_doors: Query<(&mut Door, &TriggerTarget, &mut Transform, &Mover)>,
+    mut q_doors: Query<(&mut Door, &TriggerTarget, &mut Transform, &mut Mover)>,
 ) {
     for triggered_event in ev_reader.read() {
-        for (mut door, trigger_target, _, _) in q_doors.iter_mut() {
+        for (_, trigger_target, _, mut mover) in q_doors.iter_mut() {
             if trigger_target.target_name == triggered_event.target {
-                door.triggered_time = Some(std::time::Instant::now());
+                match mover.state {
+                    MoverState::AtStart => {
+                        mover.state = MoverState::MovingToDestination(Timer::new(
+                            mover.moving_time,
+                            TimerMode::Once,
+                        ))
+                    }
+                    MoverState::AtDestination(_) => {
+                        mover.state = MoverState::AtDestination(Timer::new(
+                            mover.destination_time,
+                            TimerMode::Once,
+                        ))
+                    }
+                    _ => {}
+                }
             }
         }
     }
 
-    for (mut door, _, mut transform, mover) in q_doors.iter_mut() {
-        let triggered = if door.open_once {
-            door.triggered_time.is_some()
-        } else {
-            door.triggered_time.is_some()
-                && (std::time::Instant::now() - door.triggered_time.unwrap() < door.open_time)
-        };
-
-        // open
-        if triggered {
-            let destination = mover.destination_translation;
-            let direction = destination - transform.translation;
-            let move_distance = mover.speed * time.delta_seconds();
-
-            if direction.length() < move_distance {
-                transform.translation = destination;
-            } else {
-                transform.translation += direction.normalize() * move_distance;
+    let delta = time.delta();
+    for (door, _, mut transform, mut mover) in q_doors.iter_mut() {
+        let destination_offset = mover.destination_offset;
+        let moving_time_secs = mover.moving_time.as_secs_f32();
+        match &mut mover.state {
+            MoverState::AtStart => {}
+            MoverState::MovingToDestination(ref mut timer) => {
+                timer.tick(delta);
+                transform.translation +=
+                    destination_offset / moving_time_secs * delta.as_secs_f32();
+                if timer.just_finished() {
+                    if door.open_once {
+                        mover.state =
+                            MoverState::AtDestination(Timer::new(Duration::MAX, TimerMode::Once))
+                    } else {
+                        mover.state = MoverState::AtDestination(Timer::new(
+                            mover.destination_time,
+                            TimerMode::Once,
+                        ))
+                    }
+                }
             }
-        // close
-        } else {
-            if !door.open_once && door.triggered_time.is_some() {
-                continue;
+            MoverState::AtDestination(ref mut timer) => {
+                timer.tick(delta);
+                if timer.just_finished() {
+                    mover.state =
+                        MoverState::MovingToStart(Timer::new(mover.moving_time, TimerMode::Once))
+                }
             }
-            door.triggered_time = None;
-
-            let destination = mover.start_translation;
-            let direction = destination - transform.translation;
-            let move_distance = mover.speed * time.delta_seconds();
-
-            if direction.length() < move_distance {
-                transform.translation = destination;
-            } else {
-                transform.translation += direction.normalize() * move_distance;
+            MoverState::MovingToStart(ref mut timer) => {
+                timer.tick(delta);
+                transform.translation -=
+                    destination_offset / moving_time_secs * delta.as_secs_f32();
+                if timer.just_finished() {
+                    mover.state = MoverState::AtStart;
+                }
             }
         }
     }

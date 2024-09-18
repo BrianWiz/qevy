@@ -1,6 +1,5 @@
 use bevy::asset::io::Reader;
-use bevy::asset::{AssetLoader, BoxedFuture, Handle, LoadContext};
-use bevy::ecs::system::SystemId;
+use bevy::asset::{AssetLoader, Handle, LoadContext};
 use bevy::prelude::*;
 use bevy::reflect::TypePath;
 use components::MapUnits;
@@ -44,13 +43,13 @@ impl AssetLoader for MapAssetLoader {
     type Asset = MapAsset;
     type Settings = ();
     type Error = MapAssetLoaderError;
-    fn load<'a>(
+    async fn load<'a>(
         &'a self,
-        reader: &'a mut Reader,
+        reader: &'a mut Reader<'_>,
         _settings: &'a Self::Settings,
-        load_context: &'a mut LoadContext,
-    ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
-        load::load(reader, load_context, false)
+        load_context: &'a mut LoadContext<'_>,
+    ) -> Result<Self::Asset, Self::Error> {
+        load::load(reader, load_context, false).await
     }
 
     fn extensions(&self) -> &[&str] {
@@ -65,13 +64,13 @@ impl AssetLoader for HeadlessMapAssetLoader {
     type Asset = MapAsset;
     type Settings = ();
     type Error = MapAssetLoaderError;
-    fn load<'a>(
+    async fn load<'a>(
         &'a self,
-        reader: &'a mut Reader,
+        reader: &'a mut Reader<'_>,
         _settings: &'a Self::Settings,
-        load_context: &'a mut LoadContext,
-    ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
-        load::load(reader, load_context, true)
+        load_context: &'a mut LoadContext<'_>,
+    ) -> Result<Self::Asset, Self::Error> {
+        load::load(reader, load_context, true).await
     }
 
     fn extensions(&self) -> &[&str] {

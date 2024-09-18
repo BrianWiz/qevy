@@ -1,5 +1,5 @@
 use crate::components::*;
-use bevy::{prelude::*, utils::HashSet};
+use bevy::prelude::*;
 
 #[cfg(feature = "rapier")]
 use bevy_rapier3d::prelude::*;
@@ -35,11 +35,14 @@ pub fn rapier_trigger_system(
     }
 }
 
-#[cfg(feature = "xpbd")]
-use bevy_xpbd_3d::prelude::*;
+#[cfg(feature = "avian")]
+use avian3d::prelude::*;
 
-#[cfg(feature = "xpbd")]
-pub fn xpbd_trigger_system(
+#[cfg(feature = "avian")]
+use bevy::utils::HashSet;
+
+#[cfg(feature = "avian")]
+pub fn avian_trigger_system(
     spatial_query: SpatialQuery,
     mut commands: Commands,
     map_entity: Query<Entity, With<Map>>,
@@ -49,7 +52,7 @@ pub fn xpbd_trigger_system(
             &TriggerOnce,
             &GlobalTransform,
             &Transform,
-            &bevy_xpbd_3d::prelude::Collider,
+            &avian3d::prelude::Collider,
         ),
         Without<TriggeredOnce>,
     >,
@@ -58,7 +61,7 @@ pub fn xpbd_trigger_system(
         &TriggerMultiple,
         &GlobalTransform,
         &Transform,
-        &bevy_xpbd_3d::prelude::Collider,
+        &avian3d::prelude::Collider,
     )>,
     trigger_instigators: Query<Entity, With<TriggerInstigator>>,
     mut trigger_events: EventWriter<TriggeredEvent>,

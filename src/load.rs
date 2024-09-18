@@ -3,8 +3,8 @@ use crate::{components::*, MapAssetLoaderError};
 use crate::{MapAsset, PostBuildMapEvent};
 use bevy::asset::io::Reader;
 use bevy::asset::AsyncReadExt;
+use bevy::asset::LoadContext;
 use bevy::asset::LoadedAsset;
-use bevy::asset::{BoxedFuture, LoadContext};
 use bevy::prelude::*;
 use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::texture::CompressedImageFormats;
@@ -18,35 +18,33 @@ pub(crate) fn extensions() -> &'static [&'static str] {
     &["map"]
 }
 
-pub(crate) fn load<'a>(
-    reader: &'a mut Reader,
-    load_context: &'a mut LoadContext,
+pub(crate) async fn load<'a>(
+    reader: &'a mut Reader<'_>,
+    load_context: &'a mut LoadContext<'_>,
     headless: bool,
-) -> BoxedFuture<'a, Result<MapAsset, MapAssetLoaderError>> {
-    Box::pin(async move {
-        let mut bytes = Vec::new();
-        reader.read_to_end(&mut bytes).await?;
-        if let Ok(map) = std::str::from_utf8(&bytes)
-            .expect("invalid utf8")
-            .parse::<shalrath::repr::Map>()
-        {
-            let geomap = Some(shambler::GeoMap::new(map.clone()));
-            let mut map = MapAsset {
-                geomap: geomap,
-                texture_sizes: BTreeMap::new(),
-                material_handles: BTreeMap::new(),
-            };
+) -> Result<MapAsset, MapAssetLoaderError> {
+    let mut bytes = Vec::new();
+    reader.read_to_end(&mut bytes).await?;
+    if let Ok(map) = std::str::from_utf8(&bytes)
+        .expect("invalid utf8")
+        .parse::<shalrath::repr::Map>()
+    {
+        let geomap = Some(shambler::GeoMap::new(map.clone()));
+        let mut map = MapAsset {
+            geomap: geomap,
+            texture_sizes: BTreeMap::new(),
+            material_handles: BTreeMap::new(),
+        };
 
-            if !headless {
-                load_map_textures(&mut map, load_context).await;
-            }
-            return Ok(map);
+        if !headless {
+            load_map_textures(&mut map, load_context).await;
         }
-        Err(MapAssetLoaderError::Io(std::io::Error::new(
-            std::io::ErrorKind::InvalidData,
-            "invalid map",
-        )))
-    })
+        return Ok(map);
+    }
+    Err(MapAssetLoaderError::Io(std::io::Error::new(
+        std::io::ErrorKind::InvalidData,
+        "invalid map",
+    )))
 }
 
 pub(crate) fn handle_loaded_map_system(

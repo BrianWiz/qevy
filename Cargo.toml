@@ -13,7 +13,7 @@ authors = ["Brian Howard <brian.howard@hey.com>"]
 [dependencies]
 anyhow = "1.0.81"
 async-lock = "3.3.0"
-bevy = "0.13.2"
+bevy = "0.14.0"
 regex = "1.10.4"
 ron = "0.8.1"
 thiserror = "1.0.58"
@@ -21,16 +21,15 @@ usage = "1.4.0"
 
 shalrath = "0.2.6"
 shambler = { git = "https://github.com/BrianWiz/shambler.git" }
-bevy_xpbd_3d = { version = "0.4.2", optional = true }
-bevy_rapier3d = { version = "0.25.0", optional = true }
+avian3d = { version = "0.1.2", optional = true }
+bevy_rapier3d = { version = "0.27.0", optional = true }
 tracing = "0.1.40"
 serde = { version = "1.0.197", features = ["derive"] }
 
 [[example]]
 name = "first_person"
-required-features = ["xpbd"]
 
 [features]
-default = ["bevy_rapier3d"]
-xpbd = ["bevy_xpbd_3d"]
+default = ["rapier"]
+avian = ["avian3d"]
 rapier = ["bevy_rapier3d"]
