@@ -197,8 +197,8 @@
 {
 "classname" "mover"
 "targetname" "door_stairs"
-"destination" "2,0,0"
-"mover_type" "door"
+"destination_offset" "0 -256 0"
+"mover_kind" "door"
 // brush 0
 {
 ( 224 32 0 ) ( 224 32 1 ) ( 224 31 0 ) grey_tiles 0 0 0 1 1
@@ -213,8 +213,8 @@
 {
 "classname" "mover"
 "targetname" "door_stairs"
-"destination" "-2,0,0"
-"mover_type" "door"
+"destination_offset" "0 256 0"
+"mover_kind" "door"
 // brush 0
 {
 ( 224 288 0 ) ( 224 288 1 ) ( 224 287 0 ) grey_tiles 0 0 0 1 1

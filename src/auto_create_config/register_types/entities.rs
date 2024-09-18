@@ -27,10 +27,10 @@ impl QevyRegisterSolidClass for App {
     fn register_qevy_entity<T: QevyEntity + GetTypeRegistration + Any + Default>(
         &mut self,
     ) -> &mut Self {
-        let registry = self.world.resource_mut::<AppTypeRegistry>();
+        let registry = self.world_mut().resource_mut::<AppTypeRegistry>();
         registry.write().register::<T>();
 
-        let mut registry = self.world.resource_mut::<QevyRegistry>();
+        let mut registry = self.world_mut().resource_mut::<QevyRegistry>();
         registry.qevy_entities.push(TypeId::of::<T>());
 
         self

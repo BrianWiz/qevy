@@ -67,11 +67,12 @@ impl QevyProperty for bool {
 // Implementation for color
 impl QevyProperty for Color {
     fn get_fgd_string(&self, field_name: &str, field_description: &str) -> &'static str {
+        let color = self.to_linear();
         let rgb_string = format!(
             "{} {} {}",
-            (self.r() * 255.0) as u8,
-            (self.g() * 255.0) as u8,
-            (self.b() * 255.0) as u8
+            (color.red * 255.0) as u8,
+            (color.green * 255.0) as u8,
+            (color.blue * 255.0) as u8
         );
 
         Box::leak(

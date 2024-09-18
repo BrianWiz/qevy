@@ -15,7 +15,7 @@ Supported Physics Engines: XPBD, Rapier
 
 ## Example project & TrenchBroom
 
-Run the example project with `cargo run --release --features="xpbd" --example first_person`
+Run the example project with `cargo run --release --features="avian" --example first_person`
 
 Under the example folder, you will find an example of how to use this plugin.
 
