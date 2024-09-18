@@ -12,6 +12,7 @@ pub mod components;
 pub mod conversions;
 pub mod gameplay_systems;
 pub mod load;
+pub mod auto_create_config;
 
 #[derive(Debug, Asset, TypePath)]
 pub struct MapAsset {

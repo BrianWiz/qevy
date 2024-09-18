@@ -24,6 +24,41 @@ Under the example folder, you will find an example of how to use this plugin.
 3. Set the game's path to the `example/assets` folder.
 4. Open the `example.map` file located in `example/assets`.
 
+## Automatic Config File Generation
+
+Qevy supports the automatic generation of a configuration file on startup.
+Qevy uses Bevy's Reflection to generate the file. All you have to do is to add the `AutoCreateConfigPlugin`:
+
+```rust
+App::new()
+    .add_plugins((
+        DefaultPlugins,
+        qevy::MapAssetLoaderPlugin::default(),
+        qevy::auto_create_config::AutoCreateConfigPlugin::new("qevy_example.fgd".into()),
+    ));
+```
+
+You can set the path and name of the file to be generated. It will be stored in bevy's `assets` folder.
+
+Now Qevy will try to generate a configuration file on startup, based on all registered structs.
+To register a struct, all you have to do is just:
+
+```rust
+App::new()
+    .register_qevy_entity::<TestBaseClass>();
+```
+
+And a qevy entity is a normal rust struct, which simply derives `Reflect` and `QevyEntity`:
+
+```rust
+#[derive(Reflect, Default, QevyEntity)]
+#[reflect(QevyEntity, Default)]
+#[qevy_entity(entity_type = "Base")]
+struct TestBaseClass;
+```
+
+You can find an example of how to use this in the `example` folder, called `exporting_config.rs`.
+
 ## Special Thanks
 Special thanks to Shfty over at Qodot for the wonderful [Shambler crate](https://github.com/QodotPlugin/shambler) which handles much of the heavy lifting.
 
