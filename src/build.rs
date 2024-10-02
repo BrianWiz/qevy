@@ -2,6 +2,8 @@ use bevy::prelude::*;
 use bevy::render::mesh::Indices;
 use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::render_resource::PrimitiveTopology;
+use bevy::utils::Entry;
+use bevy::utils::HashMap;
 #[cfg(feature = "rapier")]
 #[cfg(not(feature = "avian"))]
 use bevy_rapier3d::geometry::ActiveCollisionTypes;
@@ -162,8 +164,7 @@ pub fn build_map(
                 for brush_id in brushes.iter() {
                     let brush_faces = geomap.brush_faces.get(brush_id).unwrap();
                     let mut brush_vertices: Vec<Vec3> = Vec::new();
-
-                    let mut meshes_to_spawn = Vec::new();
+                    let mut meshes_to_spawn = HashMap::<String, Mesh>::new();
 
                     for face_id in brush_faces.iter() {
                         let texture_id = geomap.face_textures.get(face_id).unwrap();
@@ -201,7 +202,15 @@ pub fn build_map(
                             }
                         }
 
-                        meshes_to_spawn.push((mesh, texture_name));
+                        match meshes_to_spawn.entry(texture_name.clone()) {
+                            Entry::Occupied(mut entry) => {
+                                let existing_mesh = entry.get_mut();
+                                existing_mesh.merge(&mesh);
+                            }
+                            Entry::Vacant(entry) => {
+                                entry.insert(mesh);
+                            }
+                        }
                     }
 
                     // spawn it's collider
@@ -235,15 +244,15 @@ pub fn build_map(
                                 collider.insert((avian3d::prelude::RigidBody::Static,));
                             }
 
-                            for (mesh, texture_name) in meshes_to_spawn {
-                                if map_asset.material_handles.contains_key(texture_name) {
+                            for (texture_name, mesh) in meshes_to_spawn {
+                                if map_asset.material_handles.contains_key(&texture_name) {
                                     spawn_mesh_event.send(SpawnMeshEvent {
                                         map: map_entity,
                                         mesh: mesh,
                                         collider: Some(collider.id()),
                                         material: map_asset
                                             .material_handles
-                                            .get(texture_name)
+                                            .get(&texture_name)
                                             .unwrap()
                                             .clone(),
                                     });
