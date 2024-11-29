@@ -31,6 +31,14 @@ pub fn build_map(
     spawn_mesh_event: &mut EventWriter<SpawnMeshEvent>,
     post_build_map_event: &mut EventWriter<PostBuildMapEvent>,
 ) {
+    let geomap = map_asset.geomap.as_mut().unwrap();
+    // Filter out nodraw faces
+    geomap.faces.retain(|face_id| {
+        let texture_id = geomap.face_textures.get(face_id).unwrap();
+        let texture_name = geomap.textures.get(texture_id).unwrap();
+        texture_name != "__TB_empty"
+    });
+    // geomap doesn't need to be mut any more
     let geomap = map_asset.geomap.as_ref().unwrap();
 
     let face_trangle_planes = &geomap.face_planes;
@@ -169,13 +177,11 @@ pub fn build_map(
                     for face_id in brush_faces.iter() {
                         let texture_id = geomap.face_textures.get(face_id).unwrap();
                         let texture_name = geomap.textures.get(texture_id).unwrap();
-
+                        
                         let indices =
                             to_bevy_indecies(&face_triangle_indices.get(&face_id).unwrap());
                         let vertices =
                             to_bevy_vertices(&face_vertices.get(&face_id).unwrap(), &map_units);
-                        let normals = to_bevy_vec3s(&face_normals.get(&face_id).unwrap());
-                        let uvs = uvs_to_bevy_vec2s(&face_uvs.get(&face_id).unwrap());
                         brush_vertices.extend(vertices.clone());
 
                         // we don't render anything for these textures
@@ -183,9 +189,13 @@ pub fn build_map(
                             || texture_name == "clip"
                             || texture_name == "common/trigger"
                             || texture_name == "common/clip"
+                            || texture_name == "__TB_empty"
                         {
                             continue;
                         }
+
+                        let normals = to_bevy_vec3s(&face_normals.get(&face_id).unwrap());
+                        let uvs = uvs_to_bevy_vec2s(&face_uvs.get(&face_id).unwrap());
 
                         let mut mesh = Mesh::new(
                             PrimitiveTopology::TriangleList,
