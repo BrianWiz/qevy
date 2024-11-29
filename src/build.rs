@@ -296,15 +296,15 @@ pub fn build_map(
                                 collider.insert((bevy_rapier3d::prelude::RigidBody::Fixed,));
                             }
 
-                            for (mesh, texture_name) in meshes_to_spawn {
-                                if map_asset.material_handles.contains_key(texture_name) {
+                            for (texture_name, mesh) in meshes_to_spawn {
+                                if map_asset.material_handles.contains_key(&texture_name) {
                                     spawn_mesh_event.send(SpawnMeshEvent {
                                         map: map_entity,
                                         mesh: mesh,
                                         collider: Some(collider.id()),
                                         material: map_asset
                                             .material_handles
-                                            .get(texture_name)
+                                            .get(&texture_name)
                                             .unwrap()
                                             .clone(),
                                     });
