@@ -6,7 +6,7 @@ use bevy_rapier3d::prelude::*;
 
 #[cfg(feature = "rapier")]
 pub fn rapier_trigger_system(
-    rapier_context: Res<RapierContext>,
+    rapier_context: ReadDefaultRapierContext,
     mut commands: Commands,
     trigger_once: Query<(Entity, &TriggerOnce), Without<TriggeredOnce>>,
     trigger_multiple: Query<(Entity, &TriggerMultiple)>,
@@ -73,15 +73,11 @@ pub fn avian_trigger_system(
             for (trigger_entity, trigger, gtransform, transform, collider) in
                 trigger_multiple.iter()
             {
-                let excluded = HashSet::from([map_entity]);
                 let intersections = spatial_query.shape_intersections(
                     collider,
                     gtransform.translation(),
                     transform.rotation,
-                    SpatialQueryFilter {
-                        excluded_entities: excluded,
-                        ..default()
-                    },
+                    &SpatialQueryFilter::from_excluded_entities([map_entity]),
                 );
 
                 for entity in intersections.iter() {
@@ -100,7 +96,7 @@ pub fn avian_trigger_system(
                     collider,
                     gtransform.translation(),
                     transform.rotation,
-                    SpatialQueryFilter::default(),
+                    &SpatialQueryFilter::default(),
                 );
 
                 for entity in intersections.iter() {

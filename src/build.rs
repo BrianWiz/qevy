@@ -345,20 +345,18 @@ pub fn mesh_spawn_system(
         // if this mesh has a collider, make it a child of the collider
         if let Some(collider) = ev.collider {
             commands.entity(collider).with_children(|children| {
-                children.spawn(PbrBundle {
-                    mesh: meshes.add(ev.mesh.to_owned()),
-                    material: ev.material.to_owned(),
-                    ..default()
-                });
+                children.spawn((
+                    Mesh3d(meshes.add(ev.mesh.to_owned())),
+                    MeshMaterial3d(ev.material.to_owned()),
+                ));
             });
         // otherwise, it's a child of the map
         } else {
             commands.entity(ev.map).with_children(|children| {
-                children.spawn(PbrBundle {
-                    mesh: meshes.add(ev.mesh.to_owned()),
-                    material: ev.material.to_owned(),
-                    ..default()
-                });
+                children.spawn((
+                    Mesh3d(meshes.add(ev.mesh.to_owned())),
+                    MeshMaterial3d(ev.material.to_owned()),
+                ));
             });
         }
     }

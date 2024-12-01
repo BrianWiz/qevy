@@ -91,15 +91,14 @@ pub fn my_post_build_map_system(
                     });
                 }
                 "monkey" => {
-                    commands.entity(entity).insert(PbrBundle {
-                        transform: props.transform,
-                        mesh: asset_server.load("models/monkey.gltf#Mesh0/Primitive0"),
-                        material: materials.add(StandardMaterial {
+                    commands.entity(entity).insert((
+                        props.transform,
+                        Mesh3d(asset_server.load("models/monkey.gltf#Mesh0/Primitive0")),
+                        MeshMaterial3d(materials.add(StandardMaterial {
                             base_color: Color::srgb(0.5, 0.5, 0.5),
                             ..default()
-                        }),
-                        ..default()
-                    });
+                        })),
+                    ));
                 }
                 _ => {}
             }
@@ -214,7 +213,7 @@ fn movement(
             // lerp camera to collider because otherwise it jitters due to physics steps
             camera_transform.translation = camera_transform.translation.lerp(
                 collider_transform.translation,
-                (1.0 / 60.0 * 1000.0) * time.delta_seconds(),
+                (1.0 / 60.0 * 1000.0) * time.delta_secs(),
             );
         }
     }
@@ -296,12 +295,12 @@ fn grab_mouse(
     let mut window = windows.single_mut();
 
     if mouse.just_pressed(MouseButton::Left) {
-        window.cursor.visible = false;
-        window.cursor.grab_mode = CursorGrabMode::Locked;
+        window.cursor_options.visible = false;
+        window.cursor_options.grab_mode = CursorGrabMode::Locked;
     }
 
     if key.just_pressed(KeyCode::Escape) {
-        window.cursor.visible = true;
-        window.cursor.grab_mode = CursorGrabMode::None;
+        window.cursor_options.visible = true;
+        window.cursor_options.grab_mode = CursorGrabMode::None;
     }
 }
