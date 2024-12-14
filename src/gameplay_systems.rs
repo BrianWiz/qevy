@@ -39,9 +39,6 @@ pub fn rapier_trigger_system(
 use avian3d::prelude::*;
 
 #[cfg(feature = "avian")]
-use bevy::utils::HashSet;
-
-#[cfg(feature = "avian")]
 pub fn avian_trigger_system(
     spatial_query: SpatialQuery,
     mut commands: Commands,

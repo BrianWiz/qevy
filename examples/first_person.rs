@@ -63,11 +63,8 @@ fn main() {
 
 fn spawn_map(mut commands: Commands, asset_server: Res<AssetServer>) {
     // spawn the map
-    commands.spawn(qevy::components::MapBundle {
-        map: qevy::components::Map {
-            asset: asset_server.load("example.map"), // map must be under `assets` folder
-            ..default()
-        },
+    commands.spawn(qevy::components::Map {
+        asset: asset_server.load("example.map"), // map must be under `assets` folder
         ..default()
     });
 }
@@ -85,10 +82,7 @@ pub fn my_post_build_map_system(
         for (entity, props) in map_entities.iter_mut() {
             match props.classname.as_str() {
                 "spawn_point" => {
-                    commands.entity(entity).insert(TransformBundle {
-                        local: props.transform,
-                        ..default()
-                    });
+                    commands.entity(entity).insert(props.transform);
                 }
                 "monkey" => {
                     commands.entity(entity).insert((
@@ -112,18 +106,18 @@ pub fn my_post_build_map_system(
 
 fn spawn_character(mut commands: Commands, mut q_windows: Query<&mut Window, With<PrimaryWindow>>) {
     // spawn the camera
-    commands.spawn(Camera3dBundle {
-        camera: Camera {
+    commands.spawn((
+        Camera3d::default(),
+        Camera {
             hdr: true,
             ..default()
         },
-        projection: Projection::Perspective(PerspectiveProjection {
+        Projection::Perspective(PerspectiveProjection {
             fov: 1.5708,
             ..default()
         }),
-        transform: Transform::from_xyz(0.0, 0.0, 0.0).looking_at(Vec3::ZERO, Vec3::Y),
-        ..default()
-    });
+        Transform::from_xyz(0.0, 0.0, 0.0).looking_at(Vec3::ZERO, Vec3::Y),
+    ));
 
     // spawn the character
     let mut character = commands.spawn((
@@ -132,10 +126,7 @@ fn spawn_character(mut commands: Commands, mut q_windows: Query<&mut Window, Wit
         RigidBody::Dynamic,
         GravityScale(0.0),
         Rotation(Quat::IDENTITY),
-        TransformBundle {
-            local: Transform::from_xyz(0.0, 5.0, 0.0),
-            ..default()
-        },
+        Transform::from_xyz(0.0, 5.0, 0.0),
     ));
 
     #[cfg(feature = "avian")]
