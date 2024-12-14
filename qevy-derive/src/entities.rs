@@ -178,7 +178,7 @@ pub(crate) fn qevy_entity_derive_macro2(
                                 unreachable!("Default value is not a struct");
                             };
                             let property = field_registry.data::<ReflectQevyProperty>().expect(format!("Field type does not implement ReflectQevyProperty: {}", name).as_str());
-                            let property = property.get(mut_value.field(name).unwrap()).expect(format!("Field not found: {}", name).as_str());
+                            let property = property.get(mut_value.field(name).unwrap().try_as_reflect().unwrap()).expect(format!("Field not found: {}", name).as_str());
                             let property_string = property.get_fgd_string(name, description);
 
                             types_string.push_str(&property_string);

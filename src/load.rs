@@ -2,16 +2,13 @@ use crate::build::SpawnMeshEvent;
 use crate::{components::*, MapAssetLoaderError};
 use crate::{MapAsset, PostBuildMapEvent};
 use bevy::asset::io::Reader;
-use bevy::asset::AsyncReadExt;
 use bevy::asset::LoadContext;
 use bevy::asset::LoadedAsset;
+use bevy::image::{
+    CompressedImageFormats, ImageAddressMode, ImageSampler, ImageSamplerDescriptor, ImageType,
+};
 use bevy::prelude::*;
 use bevy::render::render_asset::RenderAssetUsages;
-use bevy::render::texture::CompressedImageFormats;
-use bevy::render::texture::ImageAddressMode;
-use bevy::render::texture::ImageSampler;
-use bevy::render::texture::ImageSamplerDescriptor;
-use bevy::render::texture::ImageType;
 use std::collections::BTreeMap;
 
 pub(crate) fn extensions() -> &'static [&'static str] {
@@ -19,7 +16,7 @@ pub(crate) fn extensions() -> &'static [&'static str] {
 }
 
 pub(crate) async fn load<'a>(
-    reader: &'a mut Reader<'_>,
+    reader: &'a mut dyn Reader,
     load_context: &'a mut LoadContext<'_>,
     headless: bool,
 ) -> Result<MapAsset, MapAssetLoaderError> {

@@ -7,12 +7,12 @@ use std::collections::BTreeMap;
 use thiserror::Error;
 use tracing::info;
 
+pub mod auto_create_config;
 pub mod build;
 pub mod components;
 pub mod conversions;
 pub mod gameplay_systems;
 pub mod load;
-pub mod auto_create_config;
 
 #[derive(Debug, Asset, TypePath)]
 pub struct MapAsset {
@@ -44,11 +44,11 @@ impl AssetLoader for MapAssetLoader {
     type Asset = MapAsset;
     type Settings = ();
     type Error = MapAssetLoaderError;
-    async fn load<'a>(
-        &'a self,
-        reader: &'a mut Reader<'_>,
-        _settings: &'a Self::Settings,
-        load_context: &'a mut LoadContext<'_>,
+    async fn load(
+        &self,
+        reader: &mut dyn Reader,
+        _settings: &Self::Settings,
+        load_context: &mut LoadContext<'_>,
     ) -> Result<Self::Asset, Self::Error> {
         load::load(reader, load_context, false).await
     }
@@ -65,11 +65,11 @@ impl AssetLoader for HeadlessMapAssetLoader {
     type Asset = MapAsset;
     type Settings = ();
     type Error = MapAssetLoaderError;
-    async fn load<'a>(
-        &'a self,
-        reader: &'a mut Reader<'_>,
-        _settings: &'a Self::Settings,
-        load_context: &'a mut LoadContext<'_>,
+    async fn load(
+        &self,
+        reader: &mut dyn Reader,
+        _settings: &Self::Settings,
+        load_context: &mut LoadContext<'_>,
     ) -> Result<Self::Asset, Self::Error> {
         load::load(reader, load_context, true).await
     }

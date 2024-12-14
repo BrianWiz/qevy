@@ -84,7 +84,7 @@ impl Default for APointClass {
             test_flag: EnumTestFlag::EnumVariantTest,
             test_choices: EnumTestChoices::EnumVariantTest,
             test_base_class: TestBaseClass,
-            test_color: Color::rgb(1.0, 0.5, 0.75), // some random color, idk
+            test_color: Color::srgb(1.0, 0.5, 0.75), // some random color, idk
             angles: QevyAngles::default(),
         }
     }

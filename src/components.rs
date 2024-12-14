@@ -2,11 +2,15 @@ use bevy::prelude::*;
 use std::{collections::BTreeMap, time::Duration};
 
 #[derive(Default, Component)]
+#[require(Transform, Visibility)]
 pub struct Map {
     pub asset: Handle<crate::MapAsset>,
 }
 
 #[derive(Default, Bundle)]
+#[deprecated(
+    note = "As of Bevy 0.15, bundles are deprecated in favor of required components. Use just `Map` instead, along with non-default values for `Transform` and `Visibility` if needed."
+)]
 pub struct MapBundle {
     pub map: Map,
     pub transform: TransformBundle,
@@ -95,6 +99,7 @@ impl MapEntityProperties {
 }
 
 #[derive(Default, Component)]
+#[require(Transform, Visibility)]
 pub struct BrushEntity;
 
 #[derive(Default, Component)]
