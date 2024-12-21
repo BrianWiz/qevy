@@ -8,7 +8,7 @@ description = "Quake .map files for the Bevy game engine."
 license = "MIT OR Apache-2.0"
 keywords = ["quake", "bevy", "game", "engine", "map", "bsp"]
 authors = [
-    "BrianWiz <https://github.com/BrianWiz>", 
+    "BrianWiz <https://github.com/BrianWiz>",
     "Zwazel <https://github.com/zwazel>",
     "Coreh <https://github.com/coreh>",
 ]
