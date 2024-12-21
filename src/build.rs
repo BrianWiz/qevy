@@ -163,7 +163,6 @@ pub fn build_map(
                     .collect(),
                 ..default()
             },
-            SpatialBundle::default(),
         );
 
         commands.entity(map_entity).with_children(|children| {
@@ -231,8 +230,8 @@ pub fn build_map(
                         {
                             let mut collider = gchildren.spawn((
                                 convex_hull,
-                                TransformBundle::default(),
-                                VisibilityBundle::default(),
+                                Transform::default(),
+                                Visibility::default(),
                             ));
                             if classname == "trigger_multiple" {
                                 collider.insert((
@@ -279,8 +278,8 @@ pub fn build_map(
                         {
                             let mut collider = gchildren.spawn((
                                 convex_hull,
-                                TransformBundle::default(),
-                                VisibilityBundle::default(),
+                                Transform::default(),
+                                Visibility::default(),
                             ));
                             if classname == "trigger_multiple" {
                                 collider.insert((
@@ -345,20 +344,18 @@ pub fn mesh_spawn_system(
         // if this mesh has a collider, make it a child of the collider
         if let Some(collider) = ev.collider {
             commands.entity(collider).with_children(|children| {
-                children.spawn(PbrBundle {
-                    mesh: meshes.add(ev.mesh.to_owned()),
-                    material: ev.material.to_owned(),
-                    ..default()
-                });
+                children.spawn((
+                    Mesh3d(meshes.add(ev.mesh.to_owned())),
+                    MeshMaterial3d(ev.material.to_owned()),
+                ));
             });
         // otherwise, it's a child of the map
         } else {
             commands.entity(ev.map).with_children(|children| {
-                children.spawn(PbrBundle {
-                    mesh: meshes.add(ev.mesh.to_owned()),
-                    material: ev.material.to_owned(),
-                    ..default()
-                });
+                children.spawn((
+                    Mesh3d(meshes.add(ev.mesh.to_owned())),
+                    MeshMaterial3d(ev.material.to_owned()),
+                ));
             });
         }
     }
@@ -376,9 +373,9 @@ pub fn post_build_map_system(
         for (entity, props) in map_entities.iter_mut() {
             match props.classname.as_str() {
                 "light" => {
-                    commands.entity(entity).insert(PointLightBundle {
-                        transform: props.transform,
-                        point_light: PointLight {
+                    commands.entity(entity).insert((
+                        props.transform,
+                        PointLight {
                             color: props.get_property_as_color("color", Color::WHITE),
                             radius: props.get_property_as_f32("radius", 0.0),
                             range: props.get_property_as_f32("range", 10.0),
@@ -386,20 +383,18 @@ pub fn post_build_map_system(
                             shadows_enabled: props.get_property_as_bool("shadows_enabled", false),
                             ..default()
                         },
-                        ..default()
-                    });
+                    ));
                 }
                 "directional_light" => {
-                    commands.entity(entity).insert(DirectionalLightBundle {
-                        transform: props.transform,
-                        directional_light: DirectionalLight {
+                    commands.entity(entity).insert((
+                        props.transform,
+                        DirectionalLight {
                             color: props.get_property_as_color("color", Color::WHITE),
                             illuminance: props.get_property_as_f32("illuminance", 10000.0),
                             shadows_enabled: props.get_property_as_bool("shadows_enabled", false),
                             ..default()
                         },
-                        ..default()
-                    });
+                    ));
                 }
                 "mover" => {
                     let mut mover_entity = commands.entity(entity);
@@ -419,10 +414,7 @@ pub fn post_build_map_system(
                             },
                             state: MoverState::default(),
                         },
-                        TransformBundle {
-                            local: Transform::from_xyz(0.0, 0.0, 0.0),
-                            ..default()
-                        },
+                        Transform::from_xyz(0.0, 0.0, 0.0),
                     ));
 
                     if let Some(mover_kind) =

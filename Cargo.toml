@@ -8,7 +8,7 @@ description = "Quake .map files for the Bevy game engine."
 license = "MIT OR Apache-2.0"
 keywords = ["quake", "bevy", "game", "engine", "map", "bsp"]
 authors = [
-    "BrianWiz <https://github.com/BrianWiz>", 
+    "BrianWiz <https://github.com/BrianWiz>",
     "Zwazel <https://github.com/zwazel>",
     "Coreh <https://github.com/coreh>",
 ]
@@ -16,7 +16,7 @@ authors = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "0.14.2"
+bevy = "0.15.0"
 qevy-derive = { path = "qevy-derive" }
 qevy-types = { path = "qevy-types" }
 anyhow = "1.0.89"
@@ -27,8 +27,8 @@ thiserror = "1.0.63"
 usage = "1.4.0"
 shalrath = "0.2.6"
 shambler = "0.2.0"
-avian3d = { version = "0.1.2", optional = true }
-bevy_rapier3d = { version = "0.27.0", optional = true }
+avian3d = { version = "0.2.0", optional = true }
+bevy_rapier3d = { version = "0.28.0", optional = true }
 tracing = "0.1.40"
 serde = { version = "1.0.210", features = ["derive"] }
 
